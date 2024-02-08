@@ -1,3 +1,5 @@
+# NOT UPDATED
+
 # P346 Computational-Physics (Fall 2021) NISER
 This directory contains the codes, methods and assignments taught in course P346 Computational physics lab 2021 in NISER Bhubaneswar.
 
