@@ -1,6 +1,8 @@
 ########################################################################################################################
 import math
 
+import numpy as np
+
 ########################################################################################################################
 
 """
@@ -162,55 +164,80 @@ def ODE_1D_RK4(func, y0, x0, xn, h):
 ########################################################################################################################
 
 
-"""
-Heat diffusion equation solver using Cranck-Nicolson method.
+def get_matrix_heat_diff(N, sigma):
+    """
+    Get the matrices A and B for solving the heat diffusion equation using
 
-Parameters:
-- T0: Initial temperature profile
-- L: Length of the rod
-- Tl: Temperature at the left end of the rod
-- Tr: Temperature at the right end of the rod
-- k: Thermal conductivity
-- c: Specific heat
-- rho: Density
-- t0: Initial time
-- tn: Final time
-- dt: Time step
-- dx: Spatial step
-- tol: Tolerance (default = 1e-6)
+    Parameters:
+    - N: Number of spatial grid points
+    - sigma: alpha*dt/dx^2
 
-Returns:
-- T: Temperature profile at the final time
+    Returns:
+    - A: Matrix A
+    - B: Matrix B
+    """
 
-"""
+    A = [[0 for j in range(N)] for k in range(N)]
+    B = [[0 for j in range(N)] for k in range(N)]
 
-def heat_diffusion_CN(T0, L, Tl, Tr, k, c, rho, t0, tn, dt, dx, tol=1e-6):
-    N = int(L / dx) + 1
-    M = int((tn - t0) / dt) + 1
+    for i in range(0, N):
+        A[i][i] = 1 + 2*sigma
+        B[i][i] = 1 - 2*sigma
+        if i > 0:
+            A[i][i-1] = -sigma
+            B[i][i-1] = sigma
+        if i < N-1:
+            A[i][i+1] = -sigma
+            B[i][i+1] = sigma
 
-    T = [[0 for i in range(N)] for j in range(M)]
-    T[0] = T0
+    return A, B
 
-    alpha = k / (c * rho)
-    r = alpha * dt / dx**2
 
-    for j in range(1, M):
-        T[j][0] = Tl
-        T[j][N-1] = Tr
 
-        A = [[0 for i in range(N)] for j in range(N)]
-        B = [0 for i in range(N)]
+def crank_nicolson_heat_diffusion(L, T, dx, dt, Diff, init_cond):
+    """
+    Solve 1D heat diffusion equation using Crank-Nicolson method.
 
-        for i in range(1, N-1):
-            A[i][i-1] = -r
-            A[i][i] = 2 + 2*r
-            A[i][i+1] = -r
-            B[i] = 2*T[j-1][i] + r*(T[j-1][i-1] - 2*T[j-1][i] + T[j-1][i+1])
+    Parameters:
+    - L: Length of the rod
+    - T: Total time
+    - dx: Spatial step size
+    - dt: Time step size
+    - Diff: Thermal diffusivity
 
-        A[0][0] = 1
-        A[N-1][N-1] = 1
+    Returns:
+    - u: Temperature distribution over space and time
+    - x: Spatial grid
+    - t: Time grid
+    """
 
-        T[j] = fixed_point_method(lambda x: [B[i] - (A[i][i-1]*x[i-1] + A[i][i]*x[i] + A[i][i+1]*x[i+1]) for i in range(N)], T[j-1], tol=tol)[0]
+    alpha = Diff * dt / (2 * dx**2)
 
-    return T[M-1]
+    # Spatial grid
+    x = [i*dx for i in range(int(L/dx)+1)]
+    t = [i*dt for i in range(int(T/dt)+1)]
+
+    # Initialize temperature array
+    Temp = [[0 for j in range(len(x))] for k in range(int(T/dt)+1)]
+
+    # Initial condition
+    for i in range(len(x)):
+        Temp[0][i] = init_cond(x[i])
+
+    # Get the matrices for solving the matrix using crank-nicolson method
+    A, B = get_matrix_heat_diff(len(x), alpha)
+
+    Temp = np.array(Temp)
+    A = np.array(A)
+    B = np.array(B)
+
+    for i in range(1, int(T/dt)+1):
+        Temp[i, :] = np.linalg.solve(A, np.dot(B, Temp[i - 1, :]))
+
+    return Temp, x, t
+
+
+
+########################################################################################################################
+
 
