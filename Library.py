@@ -28,7 +28,7 @@ def fixed_point_method(g, x0, tol=1e-6, max_iter=100):
         x0 = x1
         iterations += 1
 
-    raise RuntimeError("Fixed-point iteration did not converge within the maximum number of iterations.")
+    raise RuntimeError("Fixed-point iteration did not converge within the maximum number of iterations. Try a different initial guess of g(x).")
 
 
 
