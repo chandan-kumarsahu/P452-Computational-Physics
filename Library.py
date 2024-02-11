@@ -20,14 +20,11 @@ Returns:
 """
 
 def fixed_point_method(g, x0, tol=1e-6, max_iter=100):
-    iterations = 1
-    while iterations < max_iter:
+    for iterations in range(1, max_iter):
         x1 = g(x0)
         if abs(x1 - x0) < tol:
             return x1, iterations
         x0 = x1
-        iterations += 1
-
     raise RuntimeError("Fixed-point iteration did not converge within the maximum number of iterations. Try a different initial guess of g(x).")
 
 
@@ -47,14 +44,14 @@ Returns:
 - Maximum value of the absolute value of the 4th derivative of the function
 """
 
-def find_max_abs_f_4th_derivative(f, a, b):
+def find_max_abs_f_4th_derivative(f, a, b, *args):
     h = (b - a) / 1000
     x = [a+i*h for i in range(1000)]
     y = []
 
     for i in range(len(x)):
         # calculate the 4th derivative of f(x) using the central difference method
-        y.append(abs((f(x[i] + 2*h) - 4*f(x[i] + h) + 6*f(x[i]) - 4*f(x[i] - h) + f(x[i] - 2*h)) / h**4))
+        y.append(abs((f(x[i] + 2*h, *args) - 4*f(x[i] + h, *args) + 6*f(x[i], *args) - 4*f(x[i] - h, *args) + f(x[i] - 2*h, *args)) / h**4))
     
     return max(y)
 
@@ -73,9 +70,9 @@ Returns:
 - N_s: Number of subintervals
 """
 
-def calculate_N_s(f, a, b, tol=1e-6):
+def calculate_N_s(f, a, b, tol=1e-6, *args):
 
-    fn_s = find_max_abs_f_4th_derivative(f, a, b)
+    fn_s = find_max_abs_f_4th_derivative(f, a, b, *args)
 
     # Calculation of N from error calculation formula
     N_s=int(((b-a)**5/180/tol*fn_s)**0.25)
@@ -106,20 +103,23 @@ Returns:
 - I: Approximate value of the integral
 '''
 
-def int_simpson(f, a, b, tol=1e-6):
-
-    N=calculate_N_s(f, a, b, tol)
-    s=f(a)+f(b)
-    h=(b-a)/N
+def int_simpson(f, a, b, tol=1e-8, *args):
+    N = calculate_N_s(f, a, b, tol, *args)
+    s = f(a, *args) + f(b, *args)
+    h = (b - a) / N
     
     # integration algorithm
-    for i in range(1,N):
-        if i%2!=0:
-            s+=4*f(a+i*h)
+    for i in range(1, N):
+        if i % 2 != 0:
+            s += 4 * f(a + i * h, *args)
         else:
-            s+=2*f(a+i*h)
+            s += 2 * f(a + i * h, *args)
     
-    return s*h/3
+    return s * h / 3
+
+
+########################################################################################################################
+
 
 
 
