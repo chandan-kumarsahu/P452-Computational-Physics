@@ -122,6 +122,132 @@ def int_simpson(f, a, b, tol=1e-8, *args):
 
 
 
+"""
+Finding the roots of Legendre polynomial given order using Newton's method. 
+I have used numpy library here for getting the roots of Legendre polynomial and manually calculated 
+the weights. This was just to show the working of the code. However it is not reuired while doing 
+actual calculations as the root and weight calculations can be done once and saved in a file.
+
+Parameters:
+- ord: Order of the Legendre polynomial
+- tol: Tolerance (default = 1e-8)
+- max_iter: Maximum number of iterations (default = 100)
+
+Returns:
+- roots: List of roots of the Legendre polynomial
+"""
+
+def legendre_roots(ord, tol=1e-8, max_iter=100):
+
+    # Initial guess for roots
+    roots = np.cos(np.pi * (4 * np.arange(1, ord + 1) - 1) / (4 * ord + 2))
+
+    for _ in range(max_iter):
+        legendre_values = np.polynomial.legendre.Legendre([0] * ord + [1])(roots)
+        legendre_derivative = np.polynomial.legendre.Legendre.deriv(np.polynomial.legendre.Legendre([0] * ord + [1]))
+
+        # Newton's method update
+        roots -= legendre_values / legendre_derivative(roots)
+
+        # Check for convergence
+        if np.max(np.abs(legendre_values)) < tol:
+            break
+
+    return list(roots)
+
+
+
+"""
+Getting the Lagrange function for the given order and roots.
+
+Parameters:
+- x: Value at which the Lagrange function is to be evaluated
+- n: Order of the Lagrange function
+- roots: List of roots of the Legendre polynomial
+
+Returns:
+- Lagrange_func: Value of the Lagrange function at x
+"""
+
+def get_lagrange_function(x, n, roots):
+    Lagrange_func = 1
+    for i in range(len(roots)):
+        if i != n-1:
+            Lagrange_func *= (x - roots[i]) / (roots[n-1] - roots[i])
+    return Lagrange_func
+
+
+
+"""
+Getting the weights for the given order and roots for the Gaussian quadrature.
+
+Parameters:
+- ord: Order of the Legendre polynomial
+- roots: List of roots of the Legendre polynomial
+
+Returns:
+- weights: List of weights for the Gaussian quadrature
+"""
+
+def get_weights(ord, roots):
+    weights = [ 0 for i in range(len(roots))]
+    for i in range(1, len(roots)+1):
+        weights[i-1] = int_simpson(get_lagrange_function, -1, 1, 1e-8, i, roots)
+    return weights
+
+
+# These 3 functions are not required to be calculated everytime while doing actual calculations as 
+# the root and weight calculations can be done once and saved in a file. 
+########################################################################################################################
+
+
+"""
+Gaussian quadrature for a given order of the Legendre polynomial.
+
+Parameters:
+- f: The function to be integrated
+- a: Lower limit of integration
+- b: Upper limit of integration
+- ord: Order of the Legendre polynomial
+
+Returns:
+- Gauss_int: Approximate value of the integral
+"""
+
+def gauss_quad(f, a, b, ord):
+    roots = legendre_roots(ord)
+    weights = get_weights(ord, roots)
+    Gauss_int = 0
+    for i in range(len(roots)):
+        Gauss_int += weights[i] * f(roots[i])
+    return Gauss_int
+
+
+
+"""
+Gaussian quadrature for a given function and interval.
+
+Parameters:
+- f: The function to be integrated
+- a: Lower limit of integration
+- b: Upper limit of integration
+- tol: Tolerance (default = 1e-8)
+
+Returns:
+- GQ1: Approximate value of the integral
+- ord+1: Order of the Legendre polynomial
+"""
+
+def Gaussian_quadrature(f, a, b, tol=1e-8):
+    for ord in range(2, 30):
+        GQ0 = gauss_quad(f, a, b, ord)
+        GQ1 = gauss_quad(f, a, b, ord+1)
+        if abs(GQ1 - GQ0) < tol:
+            return GQ1, ord
+
+    return ValueError("Integral did not converge within 30 orders of Legendre polynomials.")
+
+
 
 ########################################################################################################################
 
