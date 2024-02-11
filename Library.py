@@ -341,14 +341,14 @@ def crank_nicolson_heat_diffusion(L, T, dx, dt, Diff, init_cond):
 
     # Spatial grid
     x = [i*dx for i in range(int(L/dx)+1)]
-    t = [i*dt for i in range(int(T/dt)+1)]
+    t = [j*dt for j in range(int(T/dt)+1)]
 
     # Initialize temperature array
-    Temp = [[0 for j in range(len(x))] for k in range(int(T/dt)+1)]
+    Temp = [[0 for j in range(int(T/dt)+1)] for i in range(len(x))]
 
     # Initial condition
     for i in range(len(x)):
-        Temp[0][i] = init_cond(x[i])
+        Temp[i][0] = init_cond(x[i])
 
     # Get the matrices for solving the matrix using crank-nicolson method
     A, B = get_matrix_heat_diff(len(x), alpha)
@@ -357,8 +357,8 @@ def crank_nicolson_heat_diffusion(L, T, dx, dt, Diff, init_cond):
     A = np.array(A)
     B = np.array(B)
 
-    for i in range(1, int(T/dt)+1):
-        Temp[i, :] = np.linalg.solve(A, np.dot(B, Temp[i - 1, :]))
+    for j in range(1, int(T/dt)+1):
+        Temp[:, j] = np.linalg.solve(A, np.dot(B, Temp[:, j - 1]))
 
     return Temp, x, t
 
