@@ -352,8 +352,8 @@ def get_matrix_heat_diff(N, sigma):
     B = [[0 for j in range(N)] for k in range(N)]
 
     for i in range(0, N):
-        A[i][i] = 1 + 2*sigma
-        B[i][i] = 1 - 2*sigma
+        A[i][i] = 2 + 2*sigma
+        B[i][i] = 2 - 2*sigma
         if i > 0:
             A[i][i-1] = -sigma
             B[i][i-1] = sigma
@@ -382,7 +382,7 @@ Returns:
 
 def crank_nicolson_heat_diffusion(L, T, dx, dt, Diff, init_cond):
 
-    alpha = Diff * dt / (2 * dx**2)
+    alpha = Diff * dt / (dx**2)
 
     # Spatial grid
     x = [i*dx for i in range(int(L/dx)+1)]
