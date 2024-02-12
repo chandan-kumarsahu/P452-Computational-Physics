@@ -5,6 +5,37 @@ import numpy as np
 
 ########################################################################################################################
 
+
+
+"""
+Round a number to a certain number of decimal places.
+
+Parameters:
+- n: Number to be rounded
+- decimals: Number of decimal places (default = 0)
+
+Returns:
+- Rounded number
+"""
+
+def round_half_up(n, decimals=0):
+    multiplier = 10 ** decimals
+    return math.floor(n*multiplier + 0.5) / multiplier
+
+def ROUND(n, decimals=10):
+    rounded_abs = round_half_up(abs(n), decimals)
+    if n>0:
+        return rounded_abs
+    elif n<0:
+        return(-1)*rounded_abs
+    else:
+        return 0
+
+
+
+########################################################################################################################
+
+
 """
 Root finding using fixed-point iteration method.
 
@@ -118,82 +149,95 @@ def int_simpson(f, a, b, tol=1e-8, *args):
     return s * h / 3
 
 
+
 ########################################################################################################################
 
-
+# Function to find the roots of Legendre polynomial given order using Newton's method. 
+# I have manually calculated the roots and weights here. This was just to show the working of the code. 
+# However, all these calculations are not required to do iteratively as the root and weight can be calculated once and saved.
 
 """
-Finding the roots of Legendre polynomial given order using Newton's method. 
-I have used numpy library here for getting the roots of Legendre polynomial and manually calculated 
-the weights. This was just to show the working of the code. However it is not reuired while doing 
-actual calculations as the root and weight calculations can be done once and saved in a file.
+Legendre polynomial function.
 
 Parameters:
-- ord: Order of the Legendre polynomial
-- tol: Tolerance (default = 1e-8)
-- max_iter: Maximum number of iterations (default = 100)
+- x: Initial guess for the root
+- n: Order of the Legendre polynomial
 
 Returns:
-- roots: List of roots of the Legendre polynomial
+- P(x): Legendre polynomial at given x and order n
 """
 
-def legendre_roots(ord, tol=1e-8, max_iter=100):
+def legendre_polynomial(x, n):
+    if n == 0:
+        return 1
+    elif n == 1:
+        return x
+    else:
+        return ((2 * n - 1) * x * legendre_polynomial(x, n - 1) - (n - 1) * legendre_polynomial(x, n - 2)) / n
 
-    # Initial guess for roots
-    roots = np.cos(np.pi * (4 * np.arange(1, ord + 1) - 1) / (4 * ord + 2))
 
-    for _ in range(max_iter):
-        legendre_values = np.polynomial.legendre.Legendre([0] * ord + [1])(roots)
-        legendre_derivative = np.polynomial.legendre.Legendre.deriv(np.polynomial.legendre.Legendre([0] * ord + [1]))
 
-        # Newton's method update
-        roots -= legendre_values / legendre_derivative(roots)
+"""
+Function to find the derivative of Legendre polynomial
 
-        # Check for convergence
-        if np.max(np.abs(legendre_values)) < tol:
+Parameters:
+- x: Initial guess for the root
+- n: Order of the Legendre polynomial
+
+Returns:
+- P'(x): Derivative of Legendre polynomial at given x and order n
+"""
+
+def legendre_derivative(x, n):
+    return n * (x * legendre_polynomial(x, n) - legendre_polynomial(x, n - 1)) / (x**2 - 1)
+
+
+
+"""
+Function to find the roots of Legendre polynomial of order n using Newton's method.
+
+Parameters:
+- initial_guess: Initial guess for the root
+- n: Order of the Legendre polynomial
+
+Returns:
+- x: Roots of the Legendre polynomial
+"""
+
+def find_root(initial_guess, n):
+    tolerance = 1e-12
+    max_iterations = 1000
+    x = initial_guess
+
+    for _ in range(max_iterations):
+        f_x = legendre_polynomial(x, n)
+        f_prime_x = legendre_derivative(x, n)
+        x -= f_x / f_prime_x
+
+        if abs(f_x) < tolerance:
             break
 
-    return list(roots)
+    return x
 
 
 
 """
-Getting the Lagrange function for the given order and roots.
+Function to find the roots and weights of the Gaussian quadrature for a given order of the Legendre polynomial.
 
 Parameters:
-- x: Value at which the Lagrange function is to be evaluated
-- n: Order of the Lagrange function
-- roots: List of roots of the Legendre polynomial
+- n: Order of the Legendre polynomial
 
 Returns:
-- Lagrange_func: Value of the Lagrange function at x
+- roots: Roots of the Legendre polynomial
+- weights: Weights of the Legendre polynomial
 """
 
-def get_lagrange_function(x, n, roots):
-    Lagrange_func = 1
-    for i in range(len(roots)):
-        if i != n-1:
-            Lagrange_func *= (x - roots[i]) / (roots[n-1] - roots[i])
-    return Lagrange_func
+def get_roots_weights_gaussian(n):
+    guess = [np.cos((2 * i + 1) * np.pi / (2 * n)) for i in range(n)]
+    roots = [find_root(guess[i], n) for i in range(n)]
+    weights = [2 / ((1 - root**2) * legendre_derivative(root, n)**2) for root in roots]
 
-
-
-"""
-Getting the weights for the given order and roots for the Gaussian quadrature.
-
-Parameters:
-- ord: Order of the Legendre polynomial
-- roots: List of roots of the Legendre polynomial
-
-Returns:
-- weights: List of weights for the Gaussian quadrature
-"""
-
-def get_weights(ord, roots):
-    weights = [ 0 for i in range(len(roots))]
-    for i in range(1, len(roots)+1):
-        weights[i-1] = int_simpson(get_lagrange_function, -1, 1, 1e-8, i, roots)
-    return weights
+    return roots, weights
 
 
 # These 3 functions are not required to be calculated everytime while doing actual calculations as 
@@ -215,11 +259,13 @@ Returns:
 """
 
 def gauss_quad(f, a, b, ord):
-    roots = legendre_roots(ord)
-    weights = get_weights(ord, roots)
+    roots, weights = get_roots_weights_gaussian(ord)
     Gauss_int = 0
-    for i in range(len(roots)):
-        Gauss_int += weights[i] * f(roots[i])
+    for i in range(ord):
+        x_i = 0.5 * (b - a) * roots[i] + 0.5 * (a + b)
+        Gauss_int += weights[i] * f(x_i)
+    Gauss_int *= 0.5 * (b - a)
+   
     return Gauss_int
 
 
@@ -289,20 +335,19 @@ def ODE_1D_RK4(func, y0, x0, xn, h):
 
 ########################################################################################################################
 
+"""
+Get the matrices A and B for solving the heat diffusion equation using
+
+Parameters:
+- N: Number of spatial grid points
+- sigma: alpha*dt/dx^2
+
+Returns:
+- A: Matrix A
+- B: Matrix B
+"""
 
 def get_matrix_heat_diff(N, sigma):
-    """
-    Get the matrices A and B for solving the heat diffusion equation using
-
-    Parameters:
-    - N: Number of spatial grid points
-    - sigma: alpha*dt/dx^2
-
-    Returns:
-    - A: Matrix A
-    - B: Matrix B
-    """
-
     A = [[0 for j in range(N)] for k in range(N)]
     B = [[0 for j in range(N)] for k in range(N)]
 
@@ -319,23 +364,23 @@ def get_matrix_heat_diff(N, sigma):
     return A, B
 
 
+"""
+Solve 1D heat diffusion equation using Crank-Nicolson method.
+
+Parameters:
+- L: Length of the rod
+- T: Total time
+- dx: Spatial step size
+- dt: Time step size
+- Diff: Thermal diffusivity
+
+Returns:
+- u: Temperature distribution over space and time
+- x: Spatial grid
+- t: Time grid
+"""
 
 def crank_nicolson_heat_diffusion(L, T, dx, dt, Diff, init_cond):
-    """
-    Solve 1D heat diffusion equation using Crank-Nicolson method.
-
-    Parameters:
-    - L: Length of the rod
-    - T: Total time
-    - dx: Spatial step size
-    - dt: Time step size
-    - Diff: Thermal diffusivity
-
-    Returns:
-    - u: Temperature distribution over space and time
-    - x: Spatial grid
-    - t: Time grid
-    """
 
     alpha = Diff * dt / (2 * dx**2)
 
@@ -366,4 +411,51 @@ def crank_nicolson_heat_diffusion(L, T, dx, dt, Diff, init_cond):
 
 ########################################################################################################################
 
+
+
+"""
+Solve the Poisson equation using Jacobi iterative method for given boundary conditions
+
+Parameters:
+- n_x: Number of grid points in x-direction
+- n_y: Number of grid points in y-direction
+- x_length: Length of the domain in x-direction
+- y_length: Length of the domain in y-direction
+- get_BC_poisson: Function to get the boundary conditions
+
+Returns:
+- x: Spatial grid in x-direction
+- y: Spatial grid in y-direction
+- u: Solution of the Poisson equation
+"""
+
+def poisson_eqn_solver(n_x, n_y, x_length, y_length, get_BC_poisson):
+
+    n_x += 1
+    n_y += 1
+
+    # Discretization
+    dx = x_length / (n_x)
+    dy = y_length / (n_y)
+
+    # Initialize grid and boundary conditions
+    x = [ i*dx for i in range(n_x)]
+    y = [ i*dy for i in range(n_y)]
+
+    u = get_BC_poisson(n_x, n_y, x, y)
+
+    # Source term
+    f = [[x[i] * math.exp(y[j]) for j in range(n_y)] for i in range(n_x)]
+
+    # Jacobi iterative method
+    for _ in range(1000):
+        for i in range(1, n_x - 1):
+            for j in range(1, n_y - 1):
+                u[i][j] = (u[i - 1][j] + u[i][j - 1] + u[i][j + 1] + u[i + 1][j] - dx * dy * f[i][j]) / 4
+    
+    return x, y, u
+
+
+
+########################################################################################################################
 
