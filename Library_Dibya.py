@@ -1,22 +1,10 @@
-########################################################################################################################
 import math
 
 import numpy as np
 
-########################################################################################################################
+#********************************************************************************
 
-
-
-"""
-Round a number to a certain number of decimal places.
-
-Parameters:
-- n: Number to be rounded
-- decimals: Number of decimal places (default = 0)
-
-Returns:
-- Rounded number
-"""
+# Function to round a number to a certain number of decimal places
 
 def round_half_up(n, decimals=0):
     multiplier = 10 ** decimals
@@ -32,110 +20,72 @@ def ROUND(n, decimals=10):
         return 0
 
 
+#********************************************************************************
 
-########################################################################################################################
-
-
-"""
-Root finding using fixed-point iteration method.
-
-Parameters:
-- g(x): The function for which we want to find the root
-- x0: Initial guess for the root
-- tol: Tolerance (default = 1e-6)
-- max_iter: Maximum number of iterations (default = 100)
-
-Returns:
-- root: Approximate root found by the fixed-point iteration.
-- iterations: Number of iterations performed.
-"""
+# Fixed-point method
 
 def fixed_point(g, x0, tol=1e-6, max_iter=100):
-    for iterations in range(1, max_iter):
+    iterations = 0
+    while True:
         x1 = g(x0)
+
+        # check for convergence
         if abs(x1 - x0) < tol:
             return x1, iterations
         x0 = x1
-    raise RuntimeError("Fixed-point iteration did not converge within the maximum number of iterations. Try a different initial guess of g(x).")
+        iterations += 1
+        if iterations > max_iter:
+            print("Maximum number of iterations reached. Try a different g(x).")
 
 
+#********************************************************************************
 
-########################################################################################################################
 
-
-"""
-Find the maximum value of the absolute value of the 4th derivative of the function.
-
-Parameters:
-- f: The function for which we want to find the maximum value of the absolute value of the 4th derivative
-- a: Lower limit of the interval
-- b: Upper limit of the interval
-
-Returns:
-- Maximum value of the absolute value of the 4th derivative of the function
-"""
+# Find the maximum value of the absolute value of the 4th derivative of the function.
 
 def find_max_abs_f_4th_derivative(f, a, b, *args):
+
+    # initialize the x and f(x) arrays
     h = (b - a) / 1000
     x = [a+i*h for i in range(1000)]
-    y = []
+    f_x = [a+i*h for i in range(1000)]
 
+    # calculate the 4th derivative
     for i in range(len(x)):
-        # calculate the 4th derivative of f(x) using the central difference method
-        y.append(abs((f(x[i] + 2*h, *args) - 4*f(x[i] + h, *args) + 6*f(x[i], *args) - 4*f(x[i] - h, *args) + f(x[i] - 2*h, *args)) / h**4))
+        f_x[i] = (abs((f(x[i] + 2*h, *args) - 4*f(x[i] + h, *args) + 6*f(x[i], *args) - 4*f(x[i] - h, *args) + f(x[i] - 2*h, *args)) / h**4))
     
-    return max(y)
+    # return the maximum value
+    return max(f_x)
 
 
+#********************************************************************************
 
-"""
-Calculate the number of subintervals required for the Simpson's rule to achieve a certain error tolerance.
 
-Parameters:
-- f: The function to be integrated
-- a: Lower limit of integration
-- b: Upper limit of integration
-- eps: Tolerance (default = 1e-6)
+# Calculate the number of subintervals required for the Simpson's rule to achieve a certain error tolerance.
 
-Returns:
-- N_s: Number of subintervals
-"""
+def N_simpson(f, a, b, tol=1e-6, *args):
 
-def calculate_N_s(f, a, b, tol=1e-6, *args):
-
-    fn_s = find_max_abs_f_4th_derivative(f, a, b, *args)
+    # find the maximum value of the 4th derivative
+    max_abs_f4 = find_max_abs_f_4th_derivative(f, a, b, *args)
 
     # Calculation of N from error calculation formula
-    N_s=int(((b-a)**5/180/tol*fn_s)**0.25)
+    N_s=int(((b-a)**5/180/tol*max_abs_f4)**(1/4))
     
+    # specila case for N=0 and odd N
     if N_s==0:
-        N_s=2
-    
-    # Special case with simpson's rule
-    # It is observed for simpson rule for even N_s, it uses same value
-    # but for odd N_s, it should be 1 more else the value is coming wrong
+        N_s=2    
     if N_s%2!=0:
         N_s+=1
 
     return N_s
 
 
+#********************************************************************************
 
-'''
-Numerical integration using the Simpson's rule.
+# Numerical integration using the Simpson's rule.
 
-Parameters:
-- f: The function to be integrated
-- a: Lower limit of integration
-- b: Upper limit of integration
-- tol: Tolerance (default = 1e-6)
-
-Returns:
-- I: Approximate value of the integral
-'''
-
-def int_simpson(f, a, b, tol=1e-8, *args):
-    N = calculate_N_s(f, a, b, tol, *args)
+def simpson(f, a, b, tol=1e-8, *args):
+    N = N_simpson(f, a, b, tol, *args)
     s = f(a, *args) + f(b, *args)
     h = (b - a) / N
     
@@ -149,169 +99,50 @@ def int_simpson(f, a, b, tol=1e-8, *args):
     return s * h / 3
 
 
-
-########################################################################################################################
-
-# Function to find the roots of Legendre polynomial given order using Newton's method. 
-# I have manually calculated the roots and weights here. This was just to show the working of the code. 
-# However, all these calculations are not required to do iteratively as the root and weight can be calculated once and saved.
-
-"""
-Legendre polynomial function.
-
-Parameters:
-- x: Initial guess for the root
-- n: Order of the Legendre polynomial
-
-Returns:
-- P(x): Legendre polynomial at given x and order n
-"""
-
-def legendre_polynomial(x, n):
-    if n == 0:
-        return 1
-    elif n == 1:
-        return x
-    else:
-        return ((2 * n - 1) * x * legendre_polynomial(x, n - 1) - (n - 1) * legendre_polynomial(x, n - 2)) / n
+#********************************************************************************
 
 
+# Function to find the roots of Legendre polynomial and weights for Gaussian Quadrature method.
 
-"""
-Function to find the derivative of Legendre polynomial
-
-Parameters:
-- x: Initial guess for the root
-- n: Order of the Legendre polynomial
-
-Returns:
-- P'(x): Derivative of Legendre polynomial at given x and order n
-"""
-
-def legendre_derivative(x, n):
-    return n * (x * legendre_polynomial(x, n) - legendre_polynomial(x, n - 1)) / (x**2 - 1)
-
-
-
-"""
-Function to find the roots of Legendre polynomial of order n using Newton's method.
-
-Parameters:
-- initial_guess: Initial guess for the root
-- n: Order of the Legendre polynomial
-
-Returns:
-- x: Roots of the Legendre polynomial
-"""
-
-def find_root(initial_guess, n):
-    tolerance = 1e-12
-    max_iterations = 1000
-    x = initial_guess
-
-    for _ in range(max_iterations):
-        f_x = legendre_polynomial(x, n)
-        f_prime_x = legendre_derivative(x, n)
-        x -= f_x / f_prime_x
-
-        if abs(f_x) < tolerance:
-            break
-
-    return x
-
-
-
-"""
-Function to find the roots and weights of the Gaussian quadrature for a given order of the Legendre polynomial.
-
-Parameters:
-- n: Order of the Legendre polynomial
-
-Returns:
-- roots: Roots of the Legendre polynomial
-- weights: Weights of the Legendre polynomial
-"""
-
-def get_roots_weights_gaussian(n):
-    guess = [np.cos((2 * i + 1) * np.pi / (2 * n)) for i in range(n)]
-    roots = [find_root(guess[i], n) for i in range(n)]
-    weights = [2 / ((1 - root**2) * legendre_derivative(root, n)**2) for root in roots]
-
+def gaussian_quadrature_roots_weights(n):
+    # Calculate the roots and weights for Gaussian Quadrature using Legendre polynomials
+    roots, weights = np.polynomial.legendre.leggauss(n)
     return roots, weights
 
-
-# These 3 functions are not required to be calculated everytime while doing actual calculations as 
-# the root and weight calculations can be done once and saved in a file. 
-########################################################################################################################
-
-
-"""
-Gaussian quadrature for a given order of the Legendre polynomial.
-
-Parameters:
-- f: The function to be integrated
-- a: Lower limit of integration
-- b: Upper limit of integration
-- ord: Order of the Legendre polynomial
-
-Returns:
-- Gauss_int: Approximate value of the integral
-"""
+# Gaussian quadrature for a given order of the Legendre polynomial.
 
 def gauss_quad(f, a, b, ord):
-    roots, weights = get_roots_weights_gaussian(ord)
-    Gauss_int = 0
+
+    # Get the roots and weights
+    roots, weights = gaussian_quadrature_roots_weights(ord)
+    integral = 0
+
     for i in range(ord):
+        # Change of variable from [a, b] to [-1, 1]
         x_i = 0.5 * (b - a) * roots[i] + 0.5 * (a + b)
-        Gauss_int += weights[i] * f(x_i)
-    Gauss_int *= 0.5 * (b - a)
-   
-    return Gauss_int
 
+        # Gaussian quadrature formula
+        integral += weights[i] * f(x_i)
 
+    integral *= 0.5 * (b - a)
+    return integral
 
-"""
-Gaussian quadrature for a given function and interval.
-
-Parameters:
-- f: The function to be integrated
-- a: Lower limit of integration
-- b: Upper limit of integration
-- tol: Tolerance (default = 1e-8)
-
-Returns:
-- GQ1: Approximate value of the integral
-- ord+1: Order of the Legendre polynomial
-"""
+# Gaussian quadrature for a given function and interval.
 
 def Gaussian_quadrature(f, a, b, tol=1e-8):
-    for ord in range(2, 30):
-        GQ0 = gauss_quad(f, a, b, ord)
-        GQ1 = gauss_quad(f, a, b, ord+1)
-        if abs(GQ1 - GQ0) < tol:
-            return GQ1, ord
-
-    return ValueError("Integral did not converge within 30 orders of Legendre polynomials.")
-
-
-
-########################################################################################################################
+    ord = 2
+    while ord<100:
+        g0 = gauss_quad(f, a, b, ord)
+        g1 = gauss_quad(f, a, b, ord+1)
+        if abs(g1 - g0) < tol:
+            return g1, ord
+        ord += 1
+    print("Maximum order limit of 100 reached.")
 
 
-"""
-Runge-Kutta 4th order method for solving an ordinary differential equation.
+#********************************************************************************
 
-Parameters:
-- func: Function representing the differential equation dy/dt = func(t, y).
-- y0: Initial value of the dependent variable.
-- t0: Initial value of the independent variable.
-- tn: Final value of the independent variable.
-- h: Step size.
-
-Returns:
-- x_values: List of time values.
-- y_values: List of corresponding dependent variable values.
-"""
+# Runge-Kutta 4th order method for solving an ordinary differential equation.
 
 def ODE_1D_RK4(func, y0, x0, xn, h):
     x = [x0]

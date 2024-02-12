@@ -37,7 +37,7 @@ def ROUND(n, decimals=10):
 
 
 """
-Root finding using fixed-point iteration method.
+Root finding using fixed-point method.
 
 Parameters:
 - g(x): The function for which we want to find the root
