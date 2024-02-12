@@ -336,7 +336,7 @@ def ODE_1D_RK4(func, y0, x0, xn, h):
 ########################################################################################################################
 
 """
-Get the matrices A and B for solving the heat diffusion equation using
+Get the matrices A and B for solving the heat diffusion equation using Crank-Nicolson method.
 
 Parameters:
 - N: Number of spatial grid points
@@ -445,13 +445,13 @@ def poisson_eqn_solver(n_x, n_y, x_length, y_length, get_BC_poisson):
     u = get_BC_poisson(n_x, n_y, x, y)
 
     # Source term
-    f = [[x[i] * math.exp(y[j]) for j in range(n_y)] for i in range(n_x)]
+    src = [[x[i] * math.exp(y[j]) for j in range(n_y)] for i in range(n_x)]
 
     # Jacobi iterative method
     for _ in range(1000):
         for i in range(1, n_x - 1):
             for j in range(1, n_y - 1):
-                u[i][j] = (u[i - 1][j] + u[i][j - 1] + u[i][j + 1] + u[i + 1][j] - dx * dy * f[i][j]) / 4
+                u[i][j] = (u[i - 1][j] + u[i][j - 1] + u[i][j + 1] + u[i + 1][j] - dx * dy * src[i][j]) / 4
     
     return x, y, u
 
