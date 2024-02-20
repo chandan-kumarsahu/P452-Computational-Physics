@@ -453,7 +453,6 @@ Returns:
 - Augmented matrix after Gauss Jordan elimination
 """
 
-
 def gauss_jordan(Ab,nrows,ncols):
     det=1
     r=0
@@ -485,8 +484,42 @@ def gauss_jordan(Ab,nrows,ncols):
     return Ab, det
 
 
+########################################################################################################################
 
-# Function to extract inverse from augmented matrix
+
+"""
+Function to extract the solution from the augmented matrix
+
+Parameters:
+- A: Augmented matrix
+- nrows: Number of rows
+- ncols: Number of columns
+
+Returns:
+- Solution matrix
+"""
+
+def get_solution(A,nrows,ncols):
+    M=[[0 for j in range(ncols-1)] for i in range(nrows)]
+    for i in range(nrows):
+        for j in range(ncols-1):
+            M[i][j]=A[i][j]
+    return M
+
+
+########################################################################################################################
+
+
+"""
+Function to extract inverse from augmented matrix
+
+Parameters:
+- A: Augmented matrix
+- n: Number of rows
+
+Returns:
+- Inverse matrix
+"""
 
 def get_inv(A,n):
     r=len(A)
@@ -1203,82 +1236,113 @@ NUMERICAL INTEGRATION ALGORITHMS
 ########################################################################################################################
 
 
+"""
+Find the maximum value of the absolute value of the 2nd derivative of the function.
 
-# Function to calculate the number of iterations which will give 
-# correct integration value upto eps number of decimal places
+Parameters:
+- f: The function for which we want to find the maximum value of the absolute value of the 2nd derivative
+- a: Lower limit of the interval
+- b: Upper limit of the interval
 
-def calculate_N(fn_mp, fn_t, fn_s, eps=10**-6):
+Returns:
+- Maximum value of the absolute value of the 2nd derivative of the function
+"""
+
+def find_max_abs_f_2nd_derivative(f, a, b, *args):
+    h = (b - a) / 1000
+    x = [a+i*h for i in range(1000)]
+    y = []
+
+    for i in range(len(x)):
+        # calculate the 2nd derivative of f(x) using the central difference method
+        y.append(abs((f(x[i] + h, *args) - 2*f(x[i], *args) + f(x[i] - h, *args)) / h**2))
+            
+    return max(y)
+
+
+"""
+Calculate the number of subintervals required for the Mid-point rule to achieve a certain error tolerance.
+
+Parameters:
+- f: The function to be integrated
+- a: Lower limit of integration
+- b: Upper limit of integration
+- tol: Tolerance (default = 1e-6)
+
+Returns:
+- N_mp: Number of subintervals for the Mid-point rule
+"""
+
+def calculate_N_mp(f, a, b, tol=1e-6, *args):
+
+    fn_mp = find_max_abs_f_2nd_derivative(f, a, b, *args)
+
     # Calculation of N from error calculation formula
-    N_mp=((b-a)**3/24/eps*fn_mp)**0.5
-    N_t=((b-a)**3/12/eps*fn_t)**0.5
-    N_s=((b-a)**5/180/eps*fn_s)**0.25
-
-    # Using integral value, also handling the case where eps=0
+    N_mp=int(((b-a)**3/24/tol*fn_mp)**0.5)
+    
     if N_mp==0:
         N_mp=1
-    else:
-        N_mp=int(N_mp)
 
-    if N_t==0:
-        N_t=1
-    else:
-        N_t=int(N_t)
-    
-    if N_s==0:
-        N_s=1
-    else:
-        N_s=int(N_s)
+    return N_mp
 
-    # Special case with simpson's rule
-    # It is observed for simpson rule for even N_s, it uses same value
-    # but for odd N_s, it should be 1 more else the value is coming wrong
-    if N_s%2!=0:
-        N_s+=1
-
-    return N_mp, N_t, N_s
 
 
 
 # numerical integration by mid-point method
-def int_mid_point(f, a, b, n):
+def int_mid_point(f, a, b, tol=1e-6, *args):
+    N = calculate_N_mp(f, a, b, tol, *args)
     s=0
-    h=(b-a)/n # step size
+    h=(b-a)/N # step size
     
     # integration algorithm
-    for i in range(1,n+1):
+    for i in range(1,N+1):
         x=a+(2*i-1)*h/2
         s+=f(x)
     
     return s*h
 
 
+########################################################################################################################
+
+
+"""
+Calculate the number of subintervals required for the Trapezoidal rule to achieve a certain error tolerance.
+
+Parameters:
+- f: The function to be integrated
+- a: Lower limit of integration
+- b: Upper limit of integration
+- tol: Tolerance (default = 1e-6)
+
+Returns:
+- N_t: Number of subintervals for the Trapezoidal rule
+"""
+
+def calculate_N_t(f, a, b, tol=1e-6, *args):
+
+    fn_t = find_max_abs_f_2nd_derivative(f, a, b, *args)
+
+    # Calculation of N from error calculation formula
+    N_t=int(((b-a)**3/12/tol*fn_t)**0.5)
+    
+    if N_t==0:
+        N_t=1
+
+    return N_t
+
+
 
 # numerical integration by Trapezoidal method
-def int_trapezoidal(f, a, b, n):
+def int_trapezoidal(f, a, b, tol=1e-6, *args):
+    N = calculate_N_t(f, a, b, tol, *args)
     s=0
-    h=(b-a)/n # step size
+    h=(b-a)/N # step size
     
     # integration algorithm
-    for i in range(1,n+1):
+    for i in range(1,N+1):
         s+=f(a+i*h)+f(a+(i-1)*h)
     
     return s*h/2
-
-
-
-# numerical integration by Simpson method
-def int_simpson(f, a, b, n):
-    s=f(a)+f(b)
-    h=(b-a)/n
-    
-    # integration algorithm
-    for i in range(1,n):
-        if i%2!=0:
-            s+=4*f(a+i*h)
-        else:
-            s+=2*f(a+i*h)
-    
-    return s*h/3
 
 
 ########################################################################################################################
@@ -1368,9 +1432,6 @@ def int_simpson(f, a, b, tol=1e-8, *args):
             s += 2 * f(a + i * h, *args)
     
     return s * h / 3
-
-
-
 
 
 ########################################################################################################################
