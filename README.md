@@ -1,4 +1,5 @@
 # NOT UPDATED
+<!--
 
 # P346 Computational-Physics (Fall 2021) NISER
 This directory contains the codes, methods and assignments taught in course P346 Computational physics lab 2021 in NISER Bhubaneswar.
@@ -8,7 +9,6 @@ The codes require minimum use of python libraries serve the purpose of basic sta
 To run the codes, you require the file "CPL_Library.ipynb". This file contains all the functions required code buts to execute the assignmants.
 Importing may require different ssytem requirements. This assignmnet pavkage uses inline run for the library functions.
 
-<!-- hello -->
 ## Brief description of contents:
   * Assignment 1 : Basic algebra to get handy with python.
   
@@ -29,6 +29,6 @@ Importing may require different ssytem requirements. This assignmnet pavkage use
   * Project : Term project report and code on Adaptive quadrature.
 
   * Study materials : Notes and Materials used in class.
-
+-->
 -------------------------------------------------------
 For any queries, contact chandankumar.sahu@niser.ac.in
