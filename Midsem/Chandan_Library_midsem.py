@@ -2173,6 +2173,80 @@ def RK4_2ord_shooting_method(d2ydx2, dydx, x_init, y_init, x_fin, y_fin, z_guess
 
 
 ########################################################################################################################
+
+
+"""
+Function to solve ODE using Verlet method
+
+Parameters:
+- A: Function for the acceleration
+- x0: Initial value of x
+- v0: Initial value of v
+- dt: Time step size
+- n: Number of time steps
+- t0: Initial value of time
+
+Returns:
+- T: Array of time values
+- X: Array of x values
+"""
+
+def verlet(A, x0, v0, dt, n, t0=0):
+    # Initialize lists to store positions and time values
+    X = [x0]
+    T = np.linspace(t0, t0 + dt * n, num=n)
+
+    # Calculate the second position using the initial conditions
+    X.append(x0 + v0 * dt + 0.5 * A(x0) * dt**2)
+
+    # Use the Verlet integration method to calculate positions for the remaining time steps
+    for i in range(n - 2):
+        X.append(2 * X[-1] - X[-2] + A(X[-1]) * dt**2)
+
+    return T, X
+
+
+########################################################################################################################
+
+
+"""
+Function to solve ODE using Velocity Verlet method
+
+Parameters:
+- A: Function for the acceleration
+- x0: Initial value of x
+- v0: Initial value of v
+- dt: Time step size
+- n: Number of time steps
+- t0: Initial value of time
+
+Returns:
+- T: Array of time values
+- X: Array of x values
+- V: Array of v values
+"""
+
+def velocity_verlet(A, x0, v0, dt, n, t0=0):
+    # Initialize lists to store positions, velocities, and time values
+    X = [x0]
+    V = [v0]
+    T = np.linspace(t0, t0 + dt * n, num=n)
+
+    for i in range(n - 1):
+        # Update positions using current velocity and acceleration
+        x_new = X[-1] + V[-1] * dt + 0.5 * A(X[-1]) * dt**2
+
+        # Update velocities using current and next acceleration
+        v_new = V[-1] + 0.5 * (A(X[-1]) + A(x_new)) * dt
+
+        # Append new position and velocity to the lists
+        X.append(x_new)
+        V.append(v_new)
+
+    return T, X, V
+
+
+########################################################################################################################
 #
 #
 #
