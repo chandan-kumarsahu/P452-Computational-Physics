@@ -48,6 +48,9 @@ BASIC FUNCTIONS
 - SINE - Sine function with Taylor series expansion
 - EXP - Exponential function with Taylor series expansion
 - ROUND - Round a number to a certain number of decimal places
+- round_matrix - Round off all elements of a matrix
+- derivative - Find the derivative of a function at a given x
+- double_derivative - Find the double derivative of a function at a given x
 """
 ########################################################################################################################
 ########################################################################################################################
@@ -224,6 +227,19 @@ def double_derivative(f, x, h=1e-4):
 """
 ROOT FINDING ALGORITHMS
 
+- Bracketing - Root bracketing algorithm
+- Bisection - Root finding using bisection method
+    - Bisection_for_plotting - Bisection method for plotting convergence
+- Regula Falsi - Root finding using Regula Falsi method
+    - Regula Falsi_for_plotting - Regula Falsi method for plotting convergence
+- Newton Raphson - Root finding using Newton-Raphson method
+    - Newton Raphson_for_plotting - Newton-Raphson method for plotting convergence
+- Fixed Point Method - Root finding using fixed-point method
+- Laguerre - Root finding using Laguerre method
+    - poly_function - Polynomial function
+    - deflate - Synthetic division or deflation
+    - laguerre - Laguerre method of finding roots for polynomial function
+    - poly_solution - Collect all the roots and deflate the polynomial
 """
 ########################################################################################################################
 ########################################################################################################################
@@ -667,9 +683,23 @@ def poly_solution(A, x):
 NUMERICAL INTEGRATION ALGORITHMS
 
 - Mid-point rule
+    - find_max_abs_f_2nd_derivative - Find the maximum value of the absolute value of the 2nd derivative of the function
+    - calculate_N_mp - Calculate the number of subintervals required for the Mid-point rule to achieve a certain error tolerance
+    - int_mid_point - Numerical integration by mid-point method
 - Trapezoidal rule
+    - calculate_N_t - Calculate the number of subintervals required for the Trapezoidal rule to achieve a certain error tolerance
+    - int_trapezoidal - Numerical integration by Trapezoidal method
 - Simpson's rule
+    - find_max_abs_f_4th_derivative - Find the maximum value of the absolute value of the 4th derivative of the function
+    - calculate_N_s - Calculate the number of subintervals required for the Simpson's rule to achieve a certain error tolerance
+    - int_simpson - Numerical integration using the Simpson's rule
 - Gaussian or Gauss-Legendre quadrature
+    - legendre_polynomial - Legendre polynomial function
+    - legendre_derivative - Derivative of Legendre polynomial
+    - find_root - Find the roots of Legendre polynomial of order n using Newton's method
+    - get_roots_weights_gaussian - Get the roots and weights of the Gaussian quadrature
+    - gauss_quad - Gaussian quadrature for a given order of the Legendre polynomial
+    - Gaussian_quadrature - Gaussian quadrature for a given function and interval
 """
 ########################################################################################################################
 ########################################################################################################################
@@ -1064,6 +1094,33 @@ def Gaussian_quadrature(f, a, b, tol=1e-8):
 """
 MATRICES AND LINEAR ALGEBRA
 
+- print_matrix - Function to print a matrix
+- print_matrix_with_gap - Function to print a matrix
+- add_matrix - Function to add two matrices
+- subtract_matrix - Function to subtract two matrices
+- multiply_scalar - Function to multiply a matrix by a scalar
+- multiply_matrix - Function to multiply two matrices
+- transpose_matrix - Function to transpose a matrix
+- read_matrix - Function for reading the matrix from a text file
+- swap_rows - Function to swap two rows of a matrix
+- partial_pivot - Function for partial pivoting
+- gauss_jordan - Function for Gauss-Jordan elimination
+- get_inv_GJ - Function to get the inverse of a matrix using Gauss-Jordan elimination
+- gauss_jordan_steps - Function to get the steps of Gauss-Jordan elimination
+- partial_pivot_LU - Function for partial pivoting in LU decomposition
+- determinant_LU - Function to find the determinant of a matrix using LU decomposition
+- get_identity - Function to get the identity matrix of a given order
+- check_positive_definite - Function to check if a matrix is positive definite
+- LU_doolittle - Function for LU decomposition using Doolittle's method
+    - for_back_subs_dooolittle - Function for forward and backward substitution using LU decomposition
+- LU_crout - Function for LU decomposition using Crout's method
+    - for_back_subs_crout - Function for forward and backward substitution using LU decomposition
+- inverse_by_LU_decomposition - Function to get the inverse of a matrix using LU decomposition
+- LU_cholesky - Function for LU decomposition using Cholesky's method
+    - for_back_subs_cholesky - Function for forward and backward substitution using LU decomposition
+- LU_do2
+- jacobi - Function for Jacobi's method
+- gauss_seidel - Function for Gauss-Seidel method
 """
 ########################################################################################################################
 ########################################################################################################################
@@ -1367,29 +1424,6 @@ def gauss_jordan(Ab,nrows,ncols):
 
 
 """
-Function to extract the solution from the augmented matrix
-
-Parameters:
-- A: Augmented matrix
-- nrows: Number of rows
-- ncols: Number of columns
-
-Returns:
-- Solution matrix
-"""
-
-def get_solution(A,nrows,ncols):
-    M=[[0 for j in range(ncols-1)] for i in range(nrows)]
-    for i in range(nrows):
-        for j in range(ncols-1):
-            M[i][j]=A[i][j]
-    return M
-
-
-########################################################################################################################
-
-
-"""
 Function to extract inverse from augmented matrix
 
 Parameters:
@@ -1400,7 +1434,7 @@ Returns:
 - Inverse matrix
 """
 
-def get_inv(A,n):
+def get_inv_GJ(A,n):
     r=len(A)
     c=len(A[0])
     M=[[0 for j in range(n)] for i in range(n)]
@@ -1413,8 +1447,18 @@ def get_inv(A,n):
 ########################################################################################################################
 
 
+"""
+Gauss Jordan Elimiination method - for reference to know what happens at each step
 
-# Function for reference to know what happens at each step
+Parameters:
+- Ab: Augmented matrix
+- nrows: Number of rows
+- ncols: Number of columns
+
+Returns:
+- Augmented matrix after Gauss Jordan elimination
+"""
+
 
 def gauss_jordan_steps(Ab,nrows,ncols):
     # does partial pivoting
@@ -1459,7 +1503,17 @@ def gauss_jordan_steps(Ab,nrows,ncols):
 ########################################################################################################################
 
 
-# Function for partial pivot for LU decomposition
+"""
+Function for partial pivot for LU decomposition
+
+Parameters:
+- mat: Matrix
+- vec: Vector
+- n: Number of rows
+
+Returns:
+- Matrix and vector after partial pivot
+"""
 
 def partial_pivot_LU (mat, vec, n):
     for i in range (n-1):
@@ -1475,10 +1529,19 @@ def partial_pivot_LU (mat, vec, n):
 
 ########################################################################################################################
 
-# Function to calculate the determinant of a matrix
-# via product of transformed L or U matrix
 
-def determinant(mat,n):
+"""
+Function to calculate the determinant of a matrix via product of transformed L or U matrix
+
+Parameters:
+- mat: Matrix
+- n: Number of rows
+
+Returns:
+- Determinant of the matrix
+"""
+
+def determinant_LU(mat,n):
     det=1
     for i in range(n):
         det*=-1*mat[i][i]
@@ -1487,7 +1550,16 @@ def determinant(mat,n):
 
 ########################################################################################################################
 
-# Function to produce n x n identity matrix
+
+"""
+Function to produce n x n identity matrix
+
+Parameters:
+- n: Size of matrix
+
+Returns:
+- Identity matrix
+"""
 
 def get_identity(n):
     I=[[0 for j in range(n)] for i in range(n)]
@@ -1498,7 +1570,15 @@ def get_identity(n):
 
 ########################################################################################################################
 
-# Function for checking hermitian matrix for cholesky decomposition
+"""
+Function for checking hermitian matrix for cholesky decomposition
+
+Parameters:
+- mat: Matrix
+
+Returns:
+- True if hermitian, False otherwise
+"""
 
 def check_positive_definite(mat):
     l=0
@@ -1516,9 +1596,16 @@ def check_positive_definite(mat):
 ########################################################################################################################
 
 
+"""
+LU decomposition using Doolittle's condition L[i][i]=1 without making separate L and U matrices
 
-# LU decomposition using Doolittle's condition L[i][i]=1
-# without making separate L and U matrices
+Parameters:
+- mat: Matrix
+- n: Number of rows
+
+Returns:
+- LU decomposition of the matrix
+"""
 
 def LU_doolittle(mat,n):
     for i in range(n):
@@ -1537,8 +1624,17 @@ def LU_doolittle(mat,n):
 
 
 
-# Function to find the solution matrix provided a vector using 
-# forward and backward substitution respectively
+"""
+Function to find the solution matrix provided a vector using forward and backward substitution respectively
+
+Parameters:
+- mat: Matrix
+- n: Number of rows
+- vect: Vector in RHS
+
+Returns:
+- Solution vector
+"""
 
 def for_back_subs_doolittle(mat,n,vect):
     # initialization
@@ -1566,8 +1662,16 @@ def for_back_subs_doolittle(mat,n,vect):
 ########################################################################################################################
 
 
-# LU decomposition using Crout's condition U[i][i]=1
-# without making separate L and U matrices
+"""
+LU decomposition using Crout's condition U[i][i]=1 without making separate L and U matrices
+
+Parameters:
+- mat: Matrix
+- n: Number of rows
+
+Returns:
+- LU decomposition of the matrix
+"""
 
 def LU_crout(mat,n):
     for i in range(n):
@@ -1586,8 +1690,17 @@ def LU_crout(mat,n):
 
 
 
-# Function to find the solution matrix provided a vector using 
-# forward and backward substitution respectively
+"""
+Function to find the solution matrix provided a vector using forward and backward substitution respectively
+
+Parameters:
+- mat: Matrix
+- n: Number of rows
+- vect: Vector in RHS
+
+Returns:
+- Solution vector
+"""
 
 def for_back_subs_crout(mat,n,vect):
     y=[0 for i in range(n)]
@@ -1614,6 +1727,16 @@ def for_back_subs_crout(mat,n,vect):
 ########################################################################################################################
 
 
+"""
+Find the solution matrix using forward and backward substitution by LU decomposition
+
+Parameters:
+- mat: Matrix
+- n: Number of rows
+
+Returns:
+- Solution vector
+"""
 
 def inverse_by_lu_decomposition (matrix, n):
 
@@ -1671,10 +1794,17 @@ def inverse_by_lu_decomposition (matrix, n):
 ########################################################################################################################
 
 
+"""
+Function for Cholesky decomposition
+Only works for Hermitian and positive definite matrices. In this case, we use real matrices only
 
-# Function for Cholesky decomposition
-# Only works for Hermitian and positive definite matrices
-# In this case, we use real matrices only
+Parameters:
+- mat: Matrix
+- n: Number of rows
+
+Returns:
+- Cholesky decomposition of the matrix
+"""
 
 def LU_cho(mat,n):
     if check_positive_definite(mat)==True:
@@ -1699,9 +1829,17 @@ def LU_cho(mat,n):
         return False
 
 
+"""
+Function to find the solution matrix provided a vector using forward and backward substitution respectively
 
-# Function to find the solution matrix provided a vector using 
-# forward and backward substitution respectively
+Parameters:
+- mat: Matrix
+- n: Number of rows
+- vect: Vector in RHS
+
+Returns:
+- Solution vector
+"""
 
 def for_back_subs_cho(mat,n,vect):
     y=[0 for i in range(n)]
@@ -1728,8 +1866,16 @@ def for_back_subs_cho(mat,n,vect):
 ########################################################################################################################
 
 
-# LU decomposition using Doolittle's condition L[i][i]=1
-# by making separate L and U matrices
+"""
+LU decomposition using Doolittle's condition L[i][i]=1 by making separate L and U matrices
+
+Parameters:
+- M: Matrix
+- n: Number of rows
+
+Returns:
+- M: Matrix with L and U
+"""
 
 def LU_do2(M,n):
     # initialization
@@ -1766,6 +1912,102 @@ def LU_do2(M,n):
 
 
 ########################################################################################################################
+
+
+"""
+Find the solution of a matrix vector pair using the Jacobi iterative method.
+This method is valid only for diagonally dominant matrices.
+
+Parameters:
+- A: Matrix
+- b: RHS vector
+- tol: Tolerance for convergence
+
+Returns:
+- x: Solution of the matrix vector pair
+"""
+
+def jacobi(matrix, b, prec=1e-4):
+    a = 1
+    aarr = []
+    karr = []
+    p = 1
+    X = [0] * len(matrix)
+    X1 = [0] * len(matrix)
+
+    while a > prec:
+        a = 0
+        for l in range(len(X)):
+            X[l] = X1[l]
+
+        for i in range(len(matrix)):
+            Sum = 0
+            for j in range(len(matrix)):
+                if i != j:
+                    Sum += matrix[i][j] * X[j]
+
+            X1[i] = (b[i] - Sum) / matrix[i][i]
+
+        for j in range(len(X)):
+            a += (X1[j] - X[j]) ** 2
+
+        a = a ** 0.5
+        aarr.append(a)
+        karr.append(p)
+        p += 1
+
+    return X1
+
+
+########################################################################################################################
+
+
+"""
+Find the solution of a matrix vector pair using the Gauss-Seidel iterative method.
+This method is valid only for diagonally dominant matrices.
+
+Parameters:
+- A: Matrix
+- b: RHS vector
+- tol: Tolerance for convergence
+
+Returns:
+- x: Solution of the matrix vector pair
+"""
+
+def gauss_seidel(matrix, b, tol=1e-6):
+    a = 1
+    aarr = []
+    karr = []
+    p = 1
+    X = [0] * len(matrix)
+    X1 = [0] * len(matrix)
+
+    while a > tol:
+        a = 0
+        for l in range(len(X)):
+            X1[l] = X[l]
+
+        for i in range(len(matrix)):
+            Sum = 0
+            for j in range(len(matrix)):
+                if i != j:
+                    Sum += matrix[i][j] * X[j]
+
+            X[i] = (b[i] - Sum) / matrix[i][i]
+
+        for j in range(len(X)):
+            a += (X1[j] - X[j]) ** 2
+
+        a = a ** 0.5
+        aarr.append(a)
+        karr.append(p)
+        p += 1
+
+    return X
+
+
+########################################################################################################################
 #
 #
 #
@@ -1791,6 +2033,18 @@ def LU_do2(M,n):
 """
 ORDINARY DIFFERENTIAL EQUATIONS
 
+- forward_euler - Function to solve first order ODE using Forward Euler's method
+- backward_euler - Function to solve first order ODE using Backward Euler's method
+- predictor_corrector - Function to solve first order ODE using Predictor-Corrector method
+- ODE_1D_RK2 - Function to solve first order ODE using Runge-Kutta 2nd order method
+- ODE_1ord_RK4 - Function to solve first order ODE using Runge-Kutta 4th order method
+- ODE_2ord_RK4 - Function to solve second order ODE using Runge-Kutta 4th order method
+- Shooting_method - Function to solve second order ODE using Shooting method
+    - ODE_2ord_RK4_for_shooting - Function to solve second order ODE using Runge-Kutta 4th order method
+    - Lagrange_interpolation - Function to perform Lagrange interpolation
+    - RK4_2ord_shooting_method - Function to solve second order ODE using Runge-Kutta 4th order method
+- verlet - Function to solve second order ODE using Verlet method
+- velocity_verlet - Function to solve second order ODE using Velocity Verlet method
 """
 ########################################################################################################################
 ########################################################################################################################
@@ -2272,6 +2526,11 @@ def velocity_verlet(A, x0, v0, dt, n, t0=0):
 """
 PARTIAL DIFFERENTIAL EQUATIONS
 
+- plot_3D_surface - Function to plot 3D surface plot
+- get_matrix_heat_diff - Get the matrices A and B for solving the heat diffusion equation using Crank-Nicolson method
+- crank_nicolson_heat_diffusion - Solve 1D heat diffusion equation using Crank-Nicolson method
+- poisson_solver - Solve the Poisson equation using implicit finite difference method
+- poisson_thomas_solver - Solve the Poisson equation using Thomas algorithm
 """
 ########################################################################################################################
 ########################################################################################################################
@@ -2517,102 +2776,6 @@ def poisson_thomas_solver(n_x, n_y, x_length, y_length, get_BC_poisson):
                 u[i][j] = (u[i - 1][j] + u[i][j - 1] + u[i][j + 1] + u[i + 1][j] - dx * dy * src[i][j]) / 4
     
     return np.array(x), np.array(y), np.array(u).T
-
-
-########################################################################################################################
-
-
-"""
-Find the solution of a matrix vector pair using the Jacobi iterative method.
-This method is valid only for diagonally dominant matrices.
-
-Parameters:
-- A: Matrix
-- b: RHS vector
-- tol: Tolerance for convergence
-
-Returns:
-- x: Solution of the matrix vector pair
-"""
-
-def jacobi(matrix, b, prec=1e-4):
-    a = 1
-    aarr = []
-    karr = []
-    p = 1
-    X = [0] * len(matrix)
-    X1 = [0] * len(matrix)
-
-    while a > prec:
-        a = 0
-        for l in range(len(X)):
-            X[l] = X1[l]
-
-        for i in range(len(matrix)):
-            Sum = 0
-            for j in range(len(matrix)):
-                if i != j:
-                    Sum += matrix[i][j] * X[j]
-
-            X1[i] = (b[i] - Sum) / matrix[i][i]
-
-        for j in range(len(X)):
-            a += (X1[j] - X[j]) ** 2
-
-        a = a ** 0.5
-        aarr.append(a)
-        karr.append(p)
-        p += 1
-
-    return X1
-
-
-########################################################################################################################
-
-
-"""
-Find the solution of a matrix vector pair using the Gauss-Seidel iterative method.
-This method is valid only for diagonally dominant matrices.
-
-Parameters:
-- A: Matrix
-- b: RHS vector
-- tol: Tolerance for convergence
-
-Returns:
-- x: Solution of the matrix vector pair
-"""
-
-def gauss_seidel(matrix, b, tol=1e-6):
-    a = 1
-    aarr = []
-    karr = []
-    p = 1
-    X = [0] * len(matrix)
-    X1 = [0] * len(matrix)
-
-    while a > tol:
-        a = 0
-        for l in range(len(X)):
-            X1[l] = X[l]
-
-        for i in range(len(matrix)):
-            Sum = 0
-            for j in range(len(matrix)):
-                if i != j:
-                    Sum += matrix[i][j] * X[j]
-
-            X[i] = (b[i] - Sum) / matrix[i][i]
-
-        for j in range(len(X)):
-            a += (X1[j] - X[j]) ** 2
-
-        a = a ** 0.5
-        aarr.append(a)
-        karr.append(p)
-        p += 1
-
-    return X
 
 
 ########################################################################################################################
