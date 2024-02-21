@@ -16,6 +16,7 @@ SECTIONS OF THE LIBRARY
 - NUMERICAL INTEGRATION ALGORITHMS
 - ORDINARY DIFFERENTIAL EQUATIONS
 - PARTIAL DIFFERENTIAL EQUATIONS
+- MONTE CARLO METHODS
 """
 
 ########################################################################################################################
@@ -2004,7 +2005,6 @@ def jacobi(matrix, b, prec=1e-4):
 
 """
 Find the solution of a matrix vector pair using the Gauss-Seidel iterative method.
-This method is valid only for diagonally dominant matrices.
 
 Parameters:
 - A: Matrix
@@ -2508,7 +2508,7 @@ Returns:
 def verlet(A, x0, v0, dt, n, t0=0):
     # Initialize lists to store positions and time values
     X = [x0]
-    T = np.linspace(t0, t0 + dt * n, num=n)
+    T = [t0 + i * dt for i in range(n)]
 
     # Calculate the second position using the initial conditions
     X.append(x0 + v0 * dt + 0.5 * A(x0) * dt**2)
@@ -2544,7 +2544,7 @@ def velocity_verlet(A, x0, v0, dt, n, t0=0):
     # Initialize lists to store positions, velocities, and time values
     X = [x0]
     V = [v0]
-    T = np.linspace(t0, t0 + dt * n, num=n)
+    T = [t0 + i * dt for i in range(n)]
 
     for i in range(n - 1):
         # Update positions using current velocity and acceleration
@@ -2685,7 +2685,7 @@ def semi_implicit_euler(f1, f2, x0, y0, dt, num_steps, t0=0):
     Y = []
     x = x0
     y = y0
-    time_values = np.arange(t0, t0 + num_steps * dt, dt)
+    time_values = [t0 + i * dt for i in range(num_steps + 1)]
 
     for i in range(num_steps):
         X.append(x)
