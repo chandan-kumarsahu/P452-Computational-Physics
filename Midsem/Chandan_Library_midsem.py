@@ -240,6 +240,7 @@ ROOT FINDING ALGORITHMS
     - deflate - Synthetic division or deflation
     - laguerre - Laguerre method of finding roots for polynomial function
     - poly_solution - Collect all the roots and deflate the polynomial
+- Secant Method - Root finding using the secant method
 """
 ########################################################################################################################
 ########################################################################################################################
@@ -655,6 +656,45 @@ def poly_solution(A, x):
         A = deflate(A, root)
     return roots
 
+
+########################################################################################################################
+
+
+"""
+Secant Method for finding the root of a function.
+
+Parameters:
+    func: The function for which to find the root.
+    x0: The first initial guess for the root.
+    x1: The second initial guess for the root.
+    epsilon: The desired accuracy of the solution.
+    max_iter: The maximum number of iterations.
+
+Returns:
+    float: The estimated root of the function.
+    ValueError: If the maximum number of iterations is reached without convergence.
+"""
+
+def secant_method(func, x0, x1, epsilon=1e-8, max_iter=100):
+    x_prev = x0
+    x_curr = x1
+
+    for _ in range(max_iter):
+        f_prev = func(x_prev)
+        f_curr = func(x_curr)
+
+        if abs(f_curr) < epsilon:
+            return x_curr
+
+        x_next = x_curr - f_curr * (x_curr - x_prev) / (f_curr - f_prev)
+
+        if abs(x_next - x_curr) < epsilon:
+            return x_next
+
+        x_prev = x_curr
+        x_curr = x_next
+
+    raise ValueError("Secant method did not converge within the maximum number of iterations.")
 
 ########################################################################################################################
 #
@@ -2033,7 +2073,7 @@ def gauss_seidel(matrix, b, tol=1e-6):
 """
 ORDINARY DIFFERENTIAL EQUATIONS
 
-- euler - Function to solve first order ODE using Forward Euler's method
+- forward_euler - Function to solve first order ODE using Forward Euler's method
 - backward_euler - Function to solve first order ODE using Backward Euler's method
 - predictor_corrector - Function to solve first order ODE using Predictor-Corrector method
 - ODE_1D_RK2 - Function to solve first order ODE using Runge-Kutta 2nd order method
@@ -2045,6 +2085,9 @@ ORDINARY DIFFERENTIAL EQUATIONS
     - RK4_2ord_shooting_method - Function to solve second order ODE using Runge-Kutta 4th order method
 - verlet - Function to solve second order ODE using Verlet method
 - velocity_verlet - Function to solve second order ODE using Velocity Verlet method
+- leap_frag - Function to solve second order ODE using Leapfrog method
+- Simpletic_Euler - Function to solve second order ODE using Simpletic Euler method
+- Semi_implicit_Euler - Function to solve second order ODE using Semi-implicit Euler method
 """
 ########################################################################################################################
 ########################################################################################################################
@@ -2065,10 +2108,11 @@ Returns:
 - Y: Array of y values
 """
 
-def euler(x,y,h, lim, dydx):
+def forward_euler(x, y, h, lim, dydx):
     # Constructing solution arrays
     X = [x]
     Y = [y]
+    
     while x <= lim:
         k1 = h* dydx(x, y) # k1 calculation
         y = y + k1
@@ -2077,6 +2121,43 @@ def euler(x,y,h, lim, dydx):
         Y.append(y)
     return X, Y
 
+
+########################################################################################################################
+
+
+"""
+Function to solve first order ODE using Backward Euler's method
+
+Parameters:
+- f: Function representing the differential equation dy/dt = f(t, y).
+- y0: Initial value of the dependent variable.
+- x0: Initial value of the independent variable.
+- h: Step size.
+- lim: Upper limit of the independent variable.
+
+Returns:
+- x_values: List of time values.
+- y_values: List of corresponding dependent variable values.
+"""
+
+def backward_euler(f, y0, x0, h, lim=10):
+    N = int(lim/h)
+    X = [x0]
+    Y = [y0]
+    x_n = x0
+    y_n = y0
+
+    for i in range(N):
+        def func(y_n1):
+            return(y_n + h*f(y_n1,x_n+h) - y_n1)
+    
+        y_nR = newton_raphson(func, x_n)
+        y_n1 = y_n + h*f(y_nR,x_n+h)
+        X.append(x_n+h)
+        Y.append(y_n1)
+        y_n = y_n1
+        x_n = x_n + h
+    return X, Y
 
 ########################################################################################################################
 
@@ -2483,6 +2564,57 @@ def velocity_verlet(A, x0, v0, dt, n, t0=0):
 
 
 """
+Function to solve ODE using Leapfrog method
+
+Parameters:
+- F: Function for the force
+- x0: Initial value of x
+- p0: Initial value of p
+- dt: Time step size
+- tau: Final value of time
+- t0: Initial value of time
+
+Returns:
+- Tx: Array of time values for positions
+- Tp: Array of time values for momenta
+- X: Array of x values
+- P: Array of p values
+- pf: Final value of p
+"""
+
+def leap_frog(F, x0, p0, dt, tau, t0=0):
+    # Initialize lists to store positions, momenta, and time values
+    X = [x0]
+    P = [p0]
+    
+    # Calculate the number of time steps
+    n = int((tau - t0) / dt)
+    
+    # Generate time values for positions (Tx) and momenta (Tp)
+    Tx = [t0 + i * (tau - t0) / (n - 1) for i in range(n)]
+    Tp = [t + 0.5 * dt for t in Tx]
+
+    # Calculate the initial momentum using the given force at t0
+    P.append(P[-1] + 0.5 * F(t0) * dt)
+    
+    # Leapfrog integration loop
+    for i in range(1, n - 1):
+        X.append(X[-1] + P[-1] * dt)
+        P.append(P[-1] + F(t0 + i * dt) * dt)
+    
+    # Final position update
+    X.append(X[-1] + P[-1] * dt)
+    
+    # Final momentum update using force at tau - 0.5 * dt
+    pf = P[-1] + F(tau - 0.5 * dt) * 0.5 * dt
+    
+    return Tx, Tp, X, P, pf
+
+
+########################################################################################################################
+
+
+"""
 Function for dot product
 
 Parameters:
@@ -2525,6 +2657,43 @@ def symplectic_euler(hamiltonian, gradient_hamiltonian, q0, p0, num_steps, step_
         q_values[i + 1] = [qi + step_size * pi1 for qi, pi1 in zip(q_values[i], p_values[i + 1])]
 
     return q_values, p_values
+
+
+########################################################################################################################
+
+
+"""
+Function to solve for Q and P using the semi-implicit Euler method
+
+Parameters:
+- f1: Function for the first derivative of q
+- f2: Function for the first derivative of p
+- x0: Initial value of x
+- y0: Initial value of y
+- dt: Time step size
+- num_steps: Number of time steps
+- t0: Initial value of time
+
+Returns:
+- time_values: Array of time values
+- X: Array of x values
+- Y: Array of y values
+"""
+
+def semi_implicit_euler(f1, f2, x0, y0, dt, num_steps, t0=0):
+    X = []
+    Y = []
+    x = x0
+    y = y0
+    time_values = np.arange(t0, t0 + num_steps * dt, dt)
+
+    for i in range(num_steps):
+        X.append(x)
+        Y.append(y)
+        y += f2(t0 + i * dt, x) * dt
+        x += f1(t0 + i * dt, y) * dt
+
+    return time_values, X, Y
 
 
 ########################################################################################################################
