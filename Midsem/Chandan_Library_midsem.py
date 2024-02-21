@@ -802,7 +802,7 @@ Returns:
 """
 
 def find_max_abs_f_4th_derivative(f, a, b, *args):
-    h = (b - a) / 1000
+    h = (b - a) / 1e3
     x = [a+i*h for i in range(1000)]
     y = []
 
@@ -1757,7 +1757,22 @@ ORDINARY DIFFERENTIAL EQUATIONS
 ########################################################################################################################
 
 
-def explicit_euler(x,y,h, lim, dydx):
+"""
+Function to solve first order ODE using Forward Euler's method
+
+Parameters:
+- x: Initial value of x
+- y: Initial value of y
+- h: Step size
+- lim: Upper limit of x
+- dydx: Function for the first derivative of y with respect to x
+
+Returns:
+- X: Array of x values
+- Y: Array of y values
+"""
+
+def forward_euler(x,y,h, lim, dydx):
     # Constructing solution arrays
     X = [x]
     Y = [y]
@@ -1770,6 +1785,44 @@ def explicit_euler(x,y,h, lim, dydx):
     return X, Y
 
 
+########################################################################################################################
+
+
+"""
+Function to solve first order ODE using Backward Euler's method
+
+Parameters:
+- x: Initial value of x
+- y: Initial value of y
+- h: Step size
+- lim: Upper limit of x
+- dydx: Function for the first derivative of y with respect to x
+
+Returns:
+- X: Array of x values
+- Y: Array of y values
+"""
+
+# def backward_euler(x,y,h, lim, dydx):
+
+
+########################################################################################################################
+
+
+"""
+Function to solve first order ODE using Predictor-Corrector method
+
+Parameters:
+- x: Initial value of x
+- y: Initial value of y
+- h: Step size
+- lim: Upper limit of x
+- dydx: Function for the first derivative of y with respect to x
+
+Returns:
+- X: Array of x values
+- Y: Array of y values
+"""
 
 def predictor_corrector(x,y,h, lim, dydx):
     # Constructing solution arrays
@@ -1785,6 +1838,23 @@ def predictor_corrector(x,y,h, lim, dydx):
     return X, Y
 
 
+########################################################################################################################
+
+
+"""
+Function to solve first order ODE using Runge-Kutta 2nd order method
+
+Parameters:
+- x: Initial value of x
+- y: Initial value of y
+- h: Step size
+- lim: Upper limit of x
+- dydx: Function for the first derivative of y with respect to x
+
+Returns:
+- X: Array of x values
+- Y: Array of y values
+"""
 
 def ODE_1D_RK2(x,y,h, lim, dydx):
     # Constructing solution arrays
@@ -1803,9 +1873,141 @@ def ODE_1D_RK2(x,y,h, lim, dydx):
 ########################################################################################################################
 
 
+"""
+Function to solve first order ODE using Runge-Kutta 4th order method
 
-# Solves differential equation using Runge-Kutta method
-def runge_kutta_for_shooting(d2ydx2, dydx, x0, y0, z0, xf, h):
+Parameters:
+- func: Function representing the differential equation dy/dt = func(t, y).
+- y0: Initial value of the dependent variable.
+- t0: Initial value of the independent variable.
+- tn: Final value of the independent variable.
+- h: Step size.
+
+Returns:
+- x_values: List of time values.
+- y_values: List of corresponding dependent variable values.
+"""
+
+def ODE_1ord_RK4(dy_dx, y0, x0, xn, h):
+    x = [x0]
+    y = [y0]
+
+    while x0 < xn:
+        k1 = h * dy_dx(x0, y0)
+        k2 = h * dy_dx(x0 + 0.5 * h, y0 + 0.5 * k1)
+        k3 = h * dy_dx(x0 + 0.5 * h, y0 + 0.5 * k2)
+        k4 = h * dy_dx(x0 + h, y0 + k3)
+
+        y0 = y0 + (k1 + 2 * k2 + 2 * k3 + k4) / 6.0
+        x0 = x0 + h
+
+        x.append(x0)
+        y.append(y0)
+
+    return x, y
+
+
+########################################################################################################################
+
+
+"""
+Function to solve second order ODE using Runge-Kutta 4th order method
+
+Parameters:
+- x: Initial value of x
+- y: Initial value of y
+- p: Initial value of dydx
+- h: Step size
+- l_bound: Lower limit of x
+- u_bound: Upper limit of x
+- dydx: Function for the first derivative of y with respect to x
+- d2ydx2: Function for the second derivative of y with respect to x
+
+Returns:
+- X: Array of x values
+- Y: Array of y values
+- P: Array of p values
+"""
+
+def ODE_2ord_RK4(x,y,p, h, l_bound, u_bound, dydx, d2ydx2):
+    # p = dy/dx
+    x1=x
+    y1=y
+    p1=p
+    
+    X=[x]
+    Y=[y]
+    P=[p]
+    while x <= u_bound:
+        
+        # Calculation for each stepsize h
+        k1 = h* dydx(x,y,p)
+        l1 = h* d2ydx2(x,y,p)
+
+        k2 = h* dydx(x+h/2, y+k1/2, p+l1/2)
+        l2 = h* d2ydx2(x+h/2, y+k1/2, p+l1/2)
+
+        k3 = h* dydx(x+h/2, y+k2/2, p+l2/2)
+        l3 = h* d2ydx2(x+h/2, y+k2/2, p+l2/2)
+
+        k4 = h* dydx(x+h, y+k3, p+l3)
+        l4 = h* d2ydx2(x+h, y+k3, p+l3)
+
+        y = y + 1/6* (k1 +2*k2 +2*k3 +k4)
+        p = p + 1/6* (l1 +2*l2 +2*l3 +l4)
+        x = x + h
+
+        # Appending to arrays
+        X.append(ROUND(x,8))
+        Y.append(ROUND(y,8))
+        P.append(ROUND(p,8))
+
+    while x1 >= l_bound:
+        
+        # Calculation for each stepsize h
+        k1 = h* dydx(x,y,p1)
+        l1 = h* d2ydx2(x1,y1,p1)
+
+        k2 = h* dydx(x1-h/2, y1-k1/2, p1-l1/2)
+        l2 = h* d2ydx2(x1-h/2, y1-k1/2, p1-l1/2)
+
+        k3 = h* dydx(x1-h/2, y1-k2/2, p1-l2/2)
+        l3 = h* d2ydx2(x1-h/2, y1-k2/2, p1-l2/2)
+
+        k4 = h* dydx(x1-h, y1-k3, p1-l3)
+        l4 = h* d2ydx2(x1-h, y1-k3, p1-l3)
+
+        y1 = y1 - 1/6* (k1 +2*k2 +2*k3 +k4)
+        p1 = p1 - 1/6* (l1 +2*l2 +2*l3 +l4)
+        x1 = x1-h
+
+        # Appending to arrays
+        X.append(ROUND(x1,8))
+        Y.append(ROUND(y1,8))
+        P.append(ROUND(p1,8))
+    return X,Y,P
+
+
+########################################################################################################################
+
+
+"""
+Function to solve second order ODE using Runge-Kutta 4th order for RK Shooting method
+
+Parameters:
+- d2ydx2: Function for the second derivative of y with respect to x
+- dydx: Function for the first derivative of y with respect to x
+- x0: Initial value of x
+- y0: Initial value of y
+- z0: Initial value of z
+
+Returns:
+- x: Array of x values
+- y: Array of y values
+- z: Array of z values
+"""
+
+def ODE_2ord_RK4_for_shooting(d2ydx2, dydx, x0, y0, z0, xf, h):
     # Yields solution from x=x0 to x=xf
     # y(x0) = y0 & y'(x0) = z0
 
@@ -1843,17 +2045,45 @@ def runge_kutta_for_shooting(d2ydx2, dydx, x0, y0, z0, xf, h):
 
 
 
-# Function for Lagrange's interpolation formula
+"""
+Function for Lagrange's interpolation formula
+
+Parameters:
+- chi_h: Higher value of chi
+- chi_l: Lower value of chi
+- yh: Higher value of y
+- yl: Lower value of y
+- y: Value of y
+
+Returns:
+- chi: Value of chi
+"""
+
 def lagrange_interpolation(chi_h, chi_l, yh, yl, y):
     chi = chi_l + (chi_h - chi_l) * (y - yl)/(yh - yl)
     return chi
 
 
 
-# Solves 2nd order ODE with the given boundary conditions
-def shooting_method(d2ydx2, dydx, x_init, y_init, x_fin, y_fin, z_guess1, z_guess2, step_size, tol=1e-6):
+"""
+Solves 2nd order ODE using RK Shooting method with the given boundary conditions
 
-    x, y, z = runge_kutta_for_shooting(d2ydx2, dydx, x_init, y_init, z_guess1, x_fin, step_size)
+Parameters:
+- d2ydx2: Function for the second derivative of y with respect to x
+- dydx: Function for the first derivative of y with respect to x
+- x_init: Initial value of x
+- y_init: Initial value of y
+- x_fin: Final value of x
+
+Returns:
+- x: Array of x values
+- y: Array of y values
+- z: Array of z values
+"""
+
+def RK4_2ord_shooting_method(d2ydx2, dydx, x_init, y_init, x_fin, y_fin, z_guess1, z_guess2, step_size, tol=1e-6):
+
+    x, y, z = ODE_2ord_RK4_for_shooting(d2ydx2, dydx, x_init, y_init, z_guess1, x_fin, step_size)
     yn = y[-1]
 
     if abs(yn - y_fin) > tol:
@@ -1861,7 +2091,7 @@ def shooting_method(d2ydx2, dydx, x_init, y_init, x_fin, y_fin, z_guess1, z_gues
             chi_l = z_guess1
             yl = yn
 
-            x, y, z = runge_kutta_for_shooting(d2ydx2, dydx, x_init, y_init, z_guess2, x_fin, step_size)
+            x, y, z = ODE_2ord_RK4_for_shooting(d2ydx2, dydx, x_init, y_init, z_guess2, x_fin, step_size)
             yn = y[-1]
 
             if yn > y_fin:
@@ -1872,7 +2102,7 @@ def shooting_method(d2ydx2, dydx, x_init, y_init, x_fin, y_fin, z_guess1, z_gues
                 chi = lagrange_interpolation(chi_h, chi_l, yh, yl, y_fin)
 
                 # using this chi to solve using RK4
-                x, y, z = runge_kutta_for_shooting(d2ydx2, dydx, x_init, y_init, chi, x_fin, step_size)
+                x, y, z = ODE_2ord_RK4_for_shooting(d2ydx2, dydx, x_init, y_init, chi, x_fin, step_size)
                 return x, y, z
 
             else:
@@ -1883,7 +2113,7 @@ def shooting_method(d2ydx2, dydx, x_init, y_init, x_fin, y_fin, z_guess1, z_gues
             chi_h = z_guess1
             yh = yn
 
-            x, y, z = runge_kutta_for_shooting(d2ydx2, dydx, x_init, y_init, z_guess2, x_fin, step_size)
+            x, y, z = ODE_2ord_RK4_for_shooting(d2ydx2, dydx, x_init, y_init, z_guess2, x_fin, step_size)
             yn = y[-1]
 
             if yn < y_fin:
@@ -1893,7 +2123,7 @@ def shooting_method(d2ydx2, dydx, x_init, y_init, x_fin, y_fin, z_guess1, z_gues
                 # calculate chi using Lagrange interpolation
                 chi = lagrange_interpolation(chi_h, chi_l, yh, yl, y_fin)
 
-                x, y, z = runge_kutta_for_shooting(d2ydx2, dydx, x_init, y_init, chi, x_fin, step_size)
+                x, y, z = ODE_2ord_RK4_for_shooting(d2ydx2, dydx, x_init, y_init, chi, x_fin, step_size)
                 return x, y, z
 
             else:
@@ -1901,43 +2131,6 @@ def shooting_method(d2ydx2, dydx, x_init, y_init, x_fin, y_fin, z_guess1, z_gues
 
     else:
         return x, y, z
-
-
-########################################################################################################################
-
-
-"""
-Runge-Kutta 4th order method for solving an ordinary differential equation.
-
-Parameters:
-- func: Function representing the differential equation dy/dt = func(t, y).
-- y0: Initial value of the dependent variable.
-- t0: Initial value of the independent variable.
-- tn: Final value of the independent variable.
-- h: Step size.
-
-Returns:
-- x_values: List of time values.
-- y_values: List of corresponding dependent variable values.
-"""
-
-def ODE_1D_RK4(func, y0, x0, xn, h):
-    x = [x0]
-    y = [y0]
-
-    while x0 < xn:
-        k1 = h * func(x0, y0)
-        k2 = h * func(x0 + 0.5 * h, y0 + 0.5 * k1)
-        k3 = h * func(x0 + 0.5 * h, y0 + 0.5 * k2)
-        k4 = h * func(x0 + h, y0 + k3)
-
-        y0 = y0 + (k1 + 2 * k2 + 2 * k3 + k4) / 6.0
-        x0 = x0 + h
-
-        x.append(x0)
-        y.append(y0)
-
-    return x, y
 
 
 ########################################################################################################################
@@ -2122,6 +2315,9 @@ MONTE CARLO SIMULATIONS
 ########################################################################################################################
 ########################################################################################################################
 
+
+def pdf(x, a, b):
+    return 1/(b-a)
 
 def Average(x):
     s=0

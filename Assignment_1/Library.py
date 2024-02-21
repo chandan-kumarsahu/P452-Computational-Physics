@@ -313,7 +313,7 @@ Returns:
 - y_values: List of corresponding dependent variable values.
 """
 
-def ODE_1D_RK4(func, y0, x0, xn, h):
+def ODE_1ord_RK4(func, y0, x0, xn, h):
     x = [x0]
     y = [y0]
 
