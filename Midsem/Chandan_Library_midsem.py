@@ -2165,6 +2165,33 @@ PARTIAL DIFFERENTIAL EQUATIONS
 
 
 """
+Function to plot 3D surface plot
+
+Parameters:
+- X: Array of x values
+- Y: Array of y values
+- Sol: Array of solution values
+
+Returns:
+- None (Plots the 3D surface plot)
+"""
+
+def plot_3D_surface(X, Y, Sol, Title='3D surface plot', X_label='X', Y_label='Y', Z_label='Solution', colormap='plasma', Size=(8, 6)): 
+    fig = plt.figure(figsize=Size)
+    ax = fig.add_subplot(111, projection='3d')
+    X, Y = np.meshgrid(X, Y)
+    ax.plot_surface(X, Y, Sol, cmap=colormap)
+    ax.set_xlabel(X_label)
+    ax.set_ylabel(Y_label)
+    ax.set_zlabel(Z_label)
+    ax.set_title(Title)
+    return None
+
+
+########################################################################################################################
+    
+
+"""
 Get the matrices A and B for solving the heat diffusion equation using Crank-Nicolson method.
 
 Parameters:
@@ -2237,9 +2264,78 @@ def crank_nicolson_heat_diffusion(L, T, dx, dt, Diff, init_cond):
     return Temp, x, t
 
 
-
 ########################################################################################################################
 
+
+def poisson_solver(xa, xb, ya, yb, n, func_left_bound, func_right_bound, func_bottom_bound, func_top_bound, source_func):
+    # Generate grid
+    x0 = np.linspace(xa, xb, num=n)
+    y0 = np.linspace(ya, yb, num=n)
+    h = (yb - ya) / (n - 1)  # Calculate h_y
+    
+    # Initialize matrix W
+    Sol = np.zeros((n, n))
+    
+    # Calculate alpha
+    alpha = ((xb - xa) / (yb - ya))**2
+
+    # Set boundary conditions
+    Sol[0] = func_bottom_bound(x0)
+    Sol[n-1] = func_top_bound(x0)
+
+    for i in range(n):
+        Sol[i][0] = func_left_bound(y0[i])
+        Sol[i][n-1] = func_right_bound(y0[i])
+
+    n2 = n - 2
+    R = np.zeros((n2, n2))
+
+    # Populate matrix R with rho values
+    for i in range(n2):
+        for j in range(n2):
+            R[i][j] = -alpha * source_func(x0[i+1], y0[j+1]) * h**2
+
+    R = np.transpose(R)
+
+    N2 = n2**2
+    B = np.zeros((n2, n2))
+
+    # Get contributions from boundary conditions
+    B[0] = Sol[0][1:-1]
+    B[n2-1] = Sol[n-1][1:-1]
+
+    for i in range(n2):
+        B[i][0] += alpha * Sol[i+1][0]
+        B[i][n2-1] += alpha * Sol[i+1][n-1]
+
+    # Prepare (n-2)*(n-2) dim matrix
+    A = np.diag(np.full(N2, 2 + 2*alpha)) - alpha * \
+        np.diag(np.ones(N2-1), 1) - alpha * np.diag(np.ones(N2-1), -1) - \
+        np.diag(np.ones(N2-n2), n2) - np.diag(np.ones(N2-n2), -n2)
+
+    for i in range(1, n2):
+        A[n2*i-1][n2*i] = 0
+        A[n2*i][n2*i-1] = 0
+
+    # Invert matrix A
+    Ainv = np.linalg.inv(A)
+
+    # Get dot product
+    rho = B - R
+    u = np.dot(Ainv, rho.flatten())
+
+    # Reshape result to (n-2) x (n-2) matrix
+    matrix = u.reshape((n2, n2))
+
+    # Update W with the (x, y) table
+    for i in range(n2):
+        for j in range(n2):
+            Sol[i+1][j+1] = matrix[i][j]
+
+    return x0, y0, Sol
+
+
+########################################################################################################################
 
 
 """
@@ -2258,7 +2354,7 @@ Returns:
 - u: Solution of the Poisson equation
 """
 
-def poisson_eqn_solver(n_x, n_y, x_length, y_length, get_BC_poisson):
+def poisson_thomas_solver(n_x, n_y, x_length, y_length, get_BC_poisson):
 
     n_x += 1
     n_y += 1
@@ -2282,7 +2378,7 @@ def poisson_eqn_solver(n_x, n_y, x_length, y_length, get_BC_poisson):
             for j in range(1, n_y - 1):
                 u[i][j] = (u[i - 1][j] + u[i][j - 1] + u[i][j + 1] + u[i + 1][j] - dx * dy * src[i][j]) / 4
     
-    return x, y, u
+    return np.array(x), np.array(y), np.array(u).T
 
 
 ########################################################################################################################

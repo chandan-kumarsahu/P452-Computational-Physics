@@ -429,7 +429,7 @@ Returns:
 - u: Solution of the Poisson equation
 """
 
-def poisson_eqn_solver(n_x, n_y, x_length, y_length, get_BC_poisson):
+def poisson_thomas_solver(n_x, n_y, x_length, y_length, get_BC_poisson):
 
     n_x += 1
     n_y += 1
