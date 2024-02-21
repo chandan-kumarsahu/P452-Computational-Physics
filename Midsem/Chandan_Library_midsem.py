@@ -418,7 +418,7 @@ Returns:
 - Root of the function using newton-raphson method
 """
 
-def newton_raphson(x,f, tol=1e-6, max_it=100):
+def newton_raphson(f, x, tol=1e-6, max_it=100):
     xn=x
     k=0
     x=x-f(x)/derivative(f,x)
@@ -445,7 +445,7 @@ Returns:
 - Arrays for plotting the convergence of the root
 """
 
-def newton_raphson_for_plotting(x,f, tol=1e-6, max_it=100):
+def newton_raphson_for_plotting(f, x, tol=1e-6, max_it=100):
     loop_count=[]
     lc=0
     k=0
@@ -611,7 +611,7 @@ def poly_solution(A, x):
         root = laguerre(A, x)
         
         # newton raphson for polishing the roots
-        root=newton_raphson(root,p)
+        root=newton_raphson(p, root)
 
         # appending the root into list
         roots.append(root)
