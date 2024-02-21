@@ -2033,7 +2033,7 @@ def gauss_seidel(matrix, b, tol=1e-6):
 """
 ORDINARY DIFFERENTIAL EQUATIONS
 
-- forward_euler - Function to solve first order ODE using Forward Euler's method
+- euler - Function to solve first order ODE using Forward Euler's method
 - backward_euler - Function to solve first order ODE using Backward Euler's method
 - predictor_corrector - Function to solve first order ODE using Predictor-Corrector method
 - ODE_1D_RK2 - Function to solve first order ODE using Runge-Kutta 2nd order method
@@ -2065,7 +2065,7 @@ Returns:
 - Y: Array of y values
 """
 
-def forward_euler(x,y,h, lim, dydx):
+def euler(x,y,h, lim, dydx):
     # Constructing solution arrays
     X = [x]
     Y = [y]
@@ -2076,27 +2076,6 @@ def forward_euler(x,y,h, lim, dydx):
         X.append(x)
         Y.append(y)
     return X, Y
-
-
-########################################################################################################################
-
-
-"""
-Function to solve first order ODE using Backward Euler's method
-
-Parameters:
-- x: Initial value of x
-- y: Initial value of y
-- h: Step size
-- lim: Upper limit of x
-- dydx: Function for the first derivative of y with respect to x
-
-Returns:
-- X: Array of x values
-- Y: Array of y values
-"""
-
-# def backward_euler(x,y,h, lim, dydx):
 
 
 ########################################################################################################################
@@ -2498,6 +2477,54 @@ def velocity_verlet(A, x0, v0, dt, n, t0=0):
         V.append(v_new)
 
     return T, X, V
+
+
+########################################################################################################################
+
+
+"""
+Function for dot product
+
+Parameters:
+- a: Vector a
+- b: Vector b
+
+Returns:
+- Dot product of a and b
+"""
+
+def dot_product(a, b):
+    return sum(ai * bi for ai, bi in zip(a, b))
+
+"""
+Function to solve for Q and P using the symplectic Euler method
+In this, the Hamiltonian is conserved.
+
+Parameters:
+- hamiltonian: Function for the Hamiltonian
+- gradient_hamiltonian: Function for the gradient of the Hamiltonian
+- q0: Initial value of q
+- p0: Initial value of p
+- num_steps: Number of time steps
+- step_size: Time step size
+
+Returns:
+- q_values: Array of q values
+- p_values: Array of p values
+"""
+
+def symplectic_euler(hamiltonian, gradient_hamiltonian, q0, p0, num_steps, step_size):
+    q_values = [[0.0] * len(q0) for _ in range(num_steps + 1)]
+    p_values = [[0.0] * len(p0) for _ in range(num_steps + 1)]
+
+    q_values[0] = q0[:]
+    p_values[0] = p0[:]
+
+    for i in range(num_steps):
+        p_values[i + 1] = [pi - step_size * ghi for pi, ghi in zip(p_values[i], gradient_hamiltonian(q_values[i]))]
+        q_values[i + 1] = [qi + step_size * pi1 for qi, pi1 in zip(q_values[i], p_values[i + 1])]
+
+    return q_values, p_values
 
 
 ########################################################################################################################
