@@ -2446,6 +2446,102 @@ def poisson_thomas_solver(n_x, n_y, x_length, y_length, get_BC_poisson):
 
 
 ########################################################################################################################
+
+
+"""
+Find the solution of a matrix vector pair using the Jacobi iterative method.
+This method is valid only for diagonally dominant matrices.
+
+Parameters:
+- A: Matrix
+- b: RHS vector
+- tol: Tolerance for convergence
+
+Returns:
+- x: Solution of the matrix vector pair
+"""
+
+def jacobi(matrix, b, prec=1e-4):
+    a = 1
+    aarr = []
+    karr = []
+    p = 1
+    X = [0] * len(matrix)
+    X1 = [0] * len(matrix)
+
+    while a > prec:
+        a = 0
+        for l in range(len(X)):
+            X[l] = X1[l]
+
+        for i in range(len(matrix)):
+            Sum = 0
+            for j in range(len(matrix)):
+                if i != j:
+                    Sum += matrix[i][j] * X[j]
+
+            X1[i] = (b[i] - Sum) / matrix[i][i]
+
+        for j in range(len(X)):
+            a += (X1[j] - X[j]) ** 2
+
+        a = a ** 0.5
+        aarr.append(a)
+        karr.append(p)
+        p += 1
+
+    return X1
+
+
+########################################################################################################################
+
+
+"""
+Find the solution of a matrix vector pair using the Gauss-Seidel iterative method.
+This method is valid only for diagonally dominant matrices.
+
+Parameters:
+- A: Matrix
+- b: RHS vector
+- tol: Tolerance for convergence
+
+Returns:
+- x: Solution of the matrix vector pair
+"""
+
+def gauss_seidel(matrix, b, tol=1e-6):
+    a = 1
+    aarr = []
+    karr = []
+    p = 1
+    X = [0] * len(matrix)
+    X1 = [0] * len(matrix)
+
+    while a > tol:
+        a = 0
+        for l in range(len(X)):
+            X1[l] = X[l]
+
+        for i in range(len(matrix)):
+            Sum = 0
+            for j in range(len(matrix)):
+                if i != j:
+                    Sum += matrix[i][j] * X[j]
+
+            X[i] = (b[i] - Sum) / matrix[i][i]
+
+        for j in range(len(X)):
+            a += (X1[j] - X[j]) ** 2
+
+        a = a ** 0.5
+        aarr.append(a)
+        karr.append(p)
+        p += 1
+
+    return X
+
+
+########################################################################################################################
 #
 #
 #
