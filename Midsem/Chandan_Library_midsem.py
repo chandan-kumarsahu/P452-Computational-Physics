@@ -145,6 +145,25 @@ def ROUND(n, decimals=10):
 
 ########################################################################################################################
 
+"""    
+Function to round off all elements of a matrix
+
+Parameters:
+- M: Matrix
+
+Returns:
+- Matrix with all elements rounded off to 2 decimal places
+"""
+
+def round_matrix(M):
+    for i in range(len(M)):
+        for j in range(len(M[0])):
+            M[i][j]=ROUND(M[i][j],2)
+    return M
+
+
+########################################################################################################################
+
 
 """
 Function for finding derivative of a function at given x
@@ -1055,21 +1074,43 @@ Function to print a matrix
 
 Parameters:
 - A: Matrix
-- r: Number of rows
-- c: Number of columns
 
 Returns:
 - Prints the matrix with appropriate spaces for easy understanding
 """
 
 
-def print_matrix(A, r, c):
-    print()
+def print_matrix(A):
+    r = len(A)
+    c = len(A[0])
     for i in range(r):
         for j in range(c):
             # prints the matrix with appropriate spaces for easy understanding
-            print(A[i][j], end='    ')
-        print("\n")
+            print(str(A[i][j]).ljust(7), end="")
+        print()
+    print()
+
+
+
+"""
+Function to print a matrix
+
+Parameters:
+- A: Matrix
+
+Returns:
+- Prints the matrix with appropriate spaces for easy understanding
+"""
+
+
+def print_matrix_with_gap(A):
+    r = len(A)
+    c = len(A[0])
+    for i in range(r):
+        for j in range(c):
+            # prints the matrix with appropriate spaces for easy understanding
+            print(A[i][j], end="    ")
+        print()
     print()
 
 
@@ -1082,19 +1123,19 @@ Function to add two matrices
 Parameters:
 - A: First matrix
 - B: Second matrix
-- r: Number of rows
-- c: Number of columns
 
 Returns:
 - Sum of the two matrices
 """
 
-def add_matrix(A, B, r, c):
+def add_matrix(A, B):
+    r = len(A)
+    c = len(A[0])
     C=[[0 for i in range(c)] for j in range(r)]
     for i in range(r):
         for j in range(c):
             C[i][j]=A[i][j]+B[i][j] # Addition algorithm
-    return C,r,c
+    return C
 
 
 ########################################################################################################################
@@ -1106,19 +1147,19 @@ Function to subtract two matrices
 Parameters:
 - A: First matrix
 - B: Second matrix
-- r: Number of rows
-- c: Number of columns
 
 Returns:
 - Difference of the two matrices
 """
 
-def subtract_matrix(A, B, r, c):
+def subtract_matrix(A, B):
+    r = len(A)
+    c = len(A[0])
     C=[[0 for i in range(c)] for j in range(r)]
     for i in range(r):
         for j in range(c):
             C[i][j]=A[i][j]-B[i][j] # Subtraction algorithm
-    return C,r,c
+    return C
 
 
 ########################################################################################################################
@@ -1129,20 +1170,20 @@ Function to multiply a matrix by a scalar
 
 Parameters:
 - A: Matrix
-- r: Number of rows
-- c: Number of columns
 - s: Scalar
 
 Returns:
 - Product of the matrix and the scalar
 """
 
-def multiply_scalar(A, r, c, s):
+def multiply_scalar(A, s):
+    r = len(A)
+    c = len(A[0])
     B=[[0 for i in range(c)] for j in range(r)]
     for i in range(r):
         for j in range(c):
             B[i][j]=s*A[i][j] # Multiplication algorithm
-    return B,r,c
+    return B
 
 
 ########################################################################################################################
@@ -1170,7 +1211,7 @@ def multiply_matrix(A, r1, c1, B, r2, c2):
             for j in range(c2):
                 for k in range(c2):
                     C[i][j]+=float(A[i][k])*float(B[k][j]) # multiplication algorithm
-        return C,r1,c2
+        return C, r1, c2
     else:
         print("matrices incompatible for multiplication")
 
@@ -1183,19 +1224,19 @@ Function to transpose a matrix
 
 Parameters:
 - A: Matrix
-- r: Number of rows
-- c: Number of columns
 
 Returns:
 - Transpose of the matrix
 """
 
-def transpose_matrix(A, r, c):
+def transpose_matrix(A):
+    r = len(A)
+    c = len(A[0])
     B = [[0 for x in range(r)] for y in range(c)] 
     for i in range(r):
         for j in range(c):
             B[j][i]=A[i][j]
-    return B,c,r
+    return B
 
 
 ########################################################################################################################
@@ -1240,8 +1281,6 @@ def swap_rows(A, row1, row2):
     A[row2] = temp
     return A
 
-
-########################################################################################################################
 
 
 """
@@ -1501,27 +1540,27 @@ def LU_doolittle(mat,n):
 # Function to find the solution matrix provided a vector using 
 # forward and backward substitution respectively
 
-# def for_back_subs_doolittle(mat,n,vect):
-#     # initialization
-#     y=[0 for i in range(n)]
+def for_back_subs_doolittle(mat,n,vect):
+    # initialization
+    y=[0 for i in range(n)]
     
-#     # forward substitution
-#     y[0]=vect[0]
-#     for i in range(n):
-#         sum=0
-#         for j in range(i):
-#             sum+=mat[i][j]*y[j]
-#         y[i]=vect[i]-sum
+    # forward substitution
+    y[0]=vect[0]
+    for i in range(n):
+        sum=0
+        for j in range(i):
+            sum+=mat[i][j]*y[j]
+        y[i]=vect[i]-sum
     
-#     # backward substitution
-#     x[n-1]=y[n-1]/mat[n-1][n-1]
-#     for i in range(n-1,-1,-1):
-#         sum=0
-#         for j in range(i+1,n):
-#             sum+=mat[i][j]*x[j]
-#         x[i]=(y[i]-sum)/mat[i][i]
-#     del(y)
-#     return x
+    # backward substitution
+    vect[n-1]=y[n-1]/mat[n-1][n-1]
+    for i in range(n-1,-1,-1):
+        sum=0
+        for j in range(i+1,n):
+            sum+=mat[i][j]*vect[j]
+        vect[i]=(y[i]-sum)/mat[i][i]
+    del(y)
+    return vect
 
 
 ########################################################################################################################
@@ -1550,83 +1589,83 @@ def LU_crout(mat,n):
 # Function to find the solution matrix provided a vector using 
 # forward and backward substitution respectively
 
-# def for_back_subs_crout(mat,n,vect):
-#     y=[0 for i in range(n)]
+def for_back_subs_crout(mat,n,vect):
+    y=[0 for i in range(n)]
     
-#     # forward substitution
-#     y[0]=vect[0]/mat[0][0]
-#     for i in range(n):
-#         sum=0
-#         for j in range(i):
-#             sum+=mat[i][j]*y[j]
-#         y[i]=(vect[i]-sum)/mat[i][i]
+    # forward substitution
+    y[0]=vect[0]/mat[0][0]
+    for i in range(n):
+        sum=0
+        for j in range(i):
+            sum+=mat[i][j]*y[j]
+        y[i]=(vect[i]-sum)/mat[i][i]
     
-#     # backward substitution
-#     x[n-1]=y[n-1]
-#     for i in range(n-1,-1,-1):
-#         sum=0
-#         for j in range(i+1,n):
-#             sum+=mat[i][j]*x[j]
-#         x[i]=y[i]-sum
-#     del(y)
-#     return x
+    # backward substitution
+    vect[n-1]=y[n-1]
+    for i in range(n-1,-1,-1):
+        sum=0
+        for j in range(i+1,n):
+            sum+=mat[i][j]*vect[j]
+        vect[i]=y[i]-sum
+    del(y)
+    return vect
 
 
 ########################################################################################################################
 
 
 
-# def inverse_by_lu_decomposition (matrix, n):
+def inverse_by_lu_decomposition (matrix, n):
 
-#     identity=get_identity(ro)
-#     x=[]
+    identity=get_identity(n)
+    x=[]
     
-#     '''
-#     The inverse finding process could have been done using 
-#     a loop for the four columns. But while partial pivoting, 
-#     the rows of final inverse matrix and the vector both are 
-#     also interchanged. So it is done manually for each row and vector.
+    '''
+    The inverse finding process could have been done using 
+    a loop for the four columns. But while partial pivoting, 
+    the rows of final inverse matrix and the vector both are 
+    also interchanged. So it is done manually for each row and vector.
     
-#     deepcopy() is used so that the original matrix doesn't change on 
-#     changing the copied entities. We reuire the original multiple times here
+    deepcopy() is used so that the original matrix doesn't change on 
+    changing the copied entities. We reuire the original multiple times here
     
-#     1. First the matrix is deepcopied.
-#     2. Then partial pivoting is done for both matrix and vector.
-#     3. Then the decomposition algorithm is applied.
-#     4. Then solution is obtained.
-#     5. And finally it is appended to a separate matrix to get the inverse.
-#     Note: The final answer is also deepcopied because there is some error 
-#         due to which all x0, x1, x2 and x3 are also getting falsely appended.
-#     '''
+    1. First the matrix is deepcopied.
+    2. Then partial pivoting is done for both matrix and vector.
+    3. Then the decomposition algorithm is applied.
+    4. Then solution is obtained.
+    5. And finally it is appended to a separate matrix to get the inverse.
+    Note: The final answer is also deepcopied because there is some error 
+        due to which all x0, x1, x2 and x3 are also getting falsely appended.
+    '''
     
-#     matrix_0 = copy.deepcopy(matrix)
-#     partial_pivot_LU(matrix_0, identity[0], n)
-#     matrix_0 = LU_doolittle(matrix_0, n)
-#     x0 = for_back_subs_doolittle(matrix_0, n, identity[0])
-#     x.append(copy.deepcopy(x0))
+    matrix_0 = copy.deepcopy(matrix)
+    partial_pivot_LU(matrix_0, identity[0], n)
+    matrix_0 = LU_doolittle(matrix_0, n)
+    x0 = for_back_subs_doolittle(matrix_0, n, identity[0])
+    x.append(copy.deepcopy(x0))
 
 
-#     matrix_1 = copy.deepcopy(matrix)
-#     partial_pivot_LU(matrix_1, identity[1], n)
-#     matrix_1 = LU_doolittle(matrix_1, n)
-#     x1 = for_back_subs_doolittle(matrix_1, n, identity[1])
-#     x.append(copy.deepcopy(x1))
+    matrix_1 = copy.deepcopy(matrix)
+    partial_pivot_LU(matrix_1, identity[1], n)
+    matrix_1 = LU_doolittle(matrix_1, n)
+    x1 = for_back_subs_doolittle(matrix_1, n, identity[1])
+    x.append(copy.deepcopy(x1))
 
-#     matrix_2 = copy.deepcopy(matrix)
-#     partial_pivot_LU(matrix_2, identity[2], n)
-#     matrix_2 = LU_doolittle(matrix_2, n)
-#     x2 = for_back_subs_doolittle(matrix_2, n, identity[2])
-#     x.append(copy.deepcopy(x2))
+    matrix_2 = copy.deepcopy(matrix)
+    partial_pivot_LU(matrix_2, identity[2], n)
+    matrix_2 = LU_doolittle(matrix_2, n)
+    x2 = for_back_subs_doolittle(matrix_2, n, identity[2])
+    x.append(copy.deepcopy(x2))
 
-#     matrix_3 = copy.deepcopy(matrix)
-#     partial_pivot_LU(matrix_3, identity[3], n)
-#     matrix_3 = LU_doolittle(matrix_3, n)
-#     x3 = for_back_subs_doolittle(matrix_3, n, identity[3])
-#     x.append(copy.deepcopy(x3))
+    matrix_3 = copy.deepcopy(matrix)
+    partial_pivot_LU(matrix_3, identity[3], n)
+    matrix_3 = LU_doolittle(matrix_3, n)
+    x3 = for_back_subs_doolittle(matrix_3, n, identity[3])
+    x.append(copy.deepcopy(x3))
     
-#     # The x matrix to be transposed to get the inverse in desired form
-#     inverse,r,c=transpose_matrix(x,n,n)
-#     return (inverse)
+    # The x matrix to be transposed to get the inverse in desired form
+    inverse = transpose_matrix(x)
+    return (inverse)
 
 
 ########################################################################################################################
@@ -1664,26 +1703,26 @@ def LU_cho(mat,n):
 # Function to find the solution matrix provided a vector using 
 # forward and backward substitution respectively
 
-# def for_back_subs_cho(mat,n,vect):
-#     y=[0 for i in range(n)]
+def for_back_subs_cho(mat,n,vect):
+    y=[0 for i in range(n)]
     
-#     # forward substitution
-#     y[0]=vect[0]/mat[0][0]
-#     for i in range(n):
-#         sum=0
-#         for j in range(i):
-#             sum+=mat[i][j]*y[j]
-#         y[i]=(vect[i]-sum)/mat[i][i]
+    # forward substitution
+    y[0]=vect[0]/mat[0][0]
+    for i in range(n):
+        sum=0
+        for j in range(i):
+            sum+=mat[i][j]*y[j]
+        y[i]=(vect[i]-sum)/mat[i][i]
     
-#     # forward substitution
-#     x[n-1]=y[n-1]
-#     for i in range(n-1,-1,-1):
-#         sum=0
-#         for j in range(i+1,n):
-#             sum+=mat[i][j]*x[j]
-#         x[i]=(y[i]-sum)/mat[i][i]
-#     del(y)
-#     return x
+    # forward substitution
+    vect[n-1]=y[n-1]
+    for i in range(n-1,-1,-1):
+        sum=0
+        for j in range(i+1,n):
+            sum+=mat[i][j]*vect[j]
+        vect[i]=(y[i]-sum)/mat[i][i]
+    del(y)
+    return vect
 
 
 ########################################################################################################################
@@ -1692,38 +1731,38 @@ def LU_cho(mat,n):
 # LU decomposition using Doolittle's condition L[i][i]=1
 # by making separate L and U matrices
 
-# def LU_do2(M,n):
-#     # initialization
-#     L=[[0 for j in range(n)] for i in range(n)]
-#     U=[[0 for j in range(n)] for i in range(n)]
+def LU_do2(M,n):
+    # initialization
+    L=[[0 for j in range(n)] for i in range(n)]
+    U=[[0 for j in range(n)] for i in range(n)]
 
-#     for i in range(n):
-#         L[i][i]=1
-#         for j in range(n):
-#             if i>j: 
-#                 U[i][j]=0
-#             elif i<j:
-#                 L[i][j]=0
-#             U[0][j]=M[0][j]
-#             L[i][0]=M[i][0]/U[0][0]
-#             if i>0 and i<=j: # changing values for upper traiangular matrix
-#                 sum=0
-#                 for k in range(i):
-#                     sum+=L[i][k]*U[k][j]
-#                 U[i][j]=M[i][j]-sum
-#             if i>j: # changing values for lower traiangular matrix
-#                 sum=0
-#                 for k in range(j):
-#                     sum+=L[i][k]*U[k][j]
-#                 L[i][j]=(M[i][j]-sum)/U[j][j]
-#     print_matrix(L,n,n)
-#     print_matrix(U,n,n)
+    for i in range(n):
+        L[i][i]=1
+        for j in range(n):
+            if i>j: 
+                U[i][j]=0
+            elif i<j:
+                L[i][j]=0
+            U[0][j]=M[0][j]
+            L[i][0]=M[i][0]/U[0][0]
+            if i>0 and i<=j: # changing values for upper traiangular matrix
+                sum=0
+                for k in range(i):
+                    sum+=L[i][k]*U[k][j]
+                U[i][j]=M[i][j]-sum
+            if i>j: # changing values for lower traiangular matrix
+                sum=0
+                for k in range(j):
+                    sum+=L[i][k]*U[k][j]
+                L[i][j]=(M[i][j]-sum)/U[j][j]
+    print_matrix(L,n,n)
+    print_matrix(U,n,n)
+
+    # To check if the L and U matrices are correct, use this for verification
+    m,r,c=multiply_matrix(L, n, n, U, n, n)
+    print_matrix(m,r,c)
     
-#     # To check if the L and U matrices are correct, use this for verification
-#     m,r,c=multiply_matrix(L,ro,ro,U,ro,ro)
-#     print_matrix(m,r,c)
-    
-#     return M
+    return M
 
 
 ########################################################################################################################
@@ -2267,7 +2306,32 @@ def crank_nicolson_heat_diffusion(L, T, dx, dt, Diff, init_cond):
 ########################################################################################################################
 
 
+"""
+Solve the Poisson equation using implicit finite difference method.
+
+Parameters:
+- xa: Lower limit of x
+- xb: Upper limit of x
+- ya: Lower limit of y
+- yb: Upper limit of y
+- n: Number of grid points in x and y directions
+- func_left_bound: Function for the left boundary condition
+- func_right_bound: Function for the right boundary condition
+- func_bottom_bound: Function for the bottom boundary condition
+- func_top_bound: Function for the top boundary condition
+- source_func: Function for the source term
+
+Returns:
+- x0: Spatial grid in x-direction
+- y0: Spatial grid in y-direction
+- Sol: Solution of the Poisson equation
+"""
+
 def poisson_solver(xa, xb, ya, yb, n, func_left_bound, func_right_bound, func_bottom_bound, func_top_bound, source_func):
+
+    xb += 0.0001*xb
+    yb += 0.0001*yb
+
     # Generate grid
     x0 = np.linspace(xa, xb, num=n)
     y0 = np.linspace(ya, yb, num=n)
@@ -2339,7 +2403,7 @@ def poisson_solver(xa, xb, ya, yb, n, func_left_bound, func_right_bound, func_bo
 
 
 """
-Solve the Poisson equation using Jacobi iterative method for given boundary conditions
+Solve the Poisson equation using Jacobi iterative method also known as Thomas algorithm.
 
 Parameters:
 - n_x: Number of grid points in x-direction
@@ -2428,7 +2492,7 @@ def int_monte_carlo(f, pdf, a, b, n):
         x = np.random.uniform(low=a, high=b, size=n)
         F=0
         for i in range(len(x)):
-            F+=f(x[i])/pdf(x[i])
+            F+=f(x[i])/pdf(x[i], a, b)
         I.append(F/n)
     return Average(I)
 
