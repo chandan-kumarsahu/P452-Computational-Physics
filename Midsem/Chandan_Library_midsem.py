@@ -1048,7 +1048,7 @@ Returns:
 """
 
 def get_roots_weights_gaussian(n):
-    guess = [np.cos((2 * i + 1) * np.pi / (2 * n)) for i in range(n)]
+    guess = [math.cos((2 * i + 1) * math.pi / (2 * n)) for i in range(n)]
     roots = [find_root(guess[i], n) for i in range(n)]
     weights = [2 / ((1 - root**2) * legendre_derivative(root, n)**2) for root in roots]
 
@@ -2076,7 +2076,7 @@ ORDINARY DIFFERENTIAL EQUATIONS
 - forward_euler - Function to solve first order ODE using Forward Euler's method
 - backward_euler - Function to solve first order ODE using Backward Euler's method
 - predictor_corrector - Function to solve first order ODE using Predictor-Corrector method
-- ODE_1D_RK2 - Function to solve first order ODE using Runge-Kutta 2nd order method
+- ODE_1ord_RK2 - Function to solve first order ODE using Runge-Kutta 2nd order method
 - ODE_1ord_RK4 - Function to solve first order ODE using Runge-Kutta 4th order method
 - ODE_2ord_RK4 - Function to solve second order ODE using Runge-Kutta 4th order method
 - Shooting_method - Function to solve second order ODE using Shooting method
@@ -2209,7 +2209,7 @@ Returns:
 - Y: Array of y values
 """
 
-def ODE_1D_RK2(x,y,h, lim, dydx):
+def ODE_1ord_RK2(x,y,h, lim, dydx):
     # Constructing solution arrays
     X = [x]
     Y = [y]
@@ -2685,7 +2685,7 @@ def semi_implicit_euler(f1, f2, x0, y0, dt, num_steps, t0=0):
     Y = []
     x = x0
     y = y0
-    time_values = [t0 + i * dt for i in range(num_steps + 1)]
+    time_values = [t0 + i * dt for i in range(num_steps)]
 
     for i in range(num_steps):
         X.append(x)
