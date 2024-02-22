@@ -2804,6 +2804,7 @@ Returns:
 - t: Time grid
 """
 
+
 def crank_nicolson_heat_diffusion(L, T, dx, dt, Diff, init_cond):
 
     alpha = Diff * dt / (dx**2)
@@ -2856,42 +2857,45 @@ Returns:
 - Sol: Solution of the Poisson equation
 """
 
+
 def poisson_solver(xa, xb, ya, yb, n, func_left_bound, func_right_bound, func_bottom_bound, func_top_bound, source_func):
 
     xb += 0.0001*xb
     yb += 0.0001*yb
 
     # Generate grid
-    x0 = np.linspace(xa, xb, num=n)
-    y0 = np.linspace(ya, yb, num=n)
+    x0 = [xa + i * (xb - xa) / (n - 1) for i in range(n)]
+    y0 = [ya + i * (yb - ya) / (n - 1) for i in range(n)]
+
     h = (yb - ya) / (n - 1)  # Calculate h_y
     
     # Initialize matrix W
-    Sol = np.zeros((n, n))
+    Sol = [[0 for j in range(n)] for i in range(n)]
     
     # Calculate alpha
     alpha = ((xb - xa) / (yb - ya))**2
 
     # Set boundary conditions
-    Sol[0] = func_bottom_bound(x0)
-    Sol[n-1] = func_top_bound(x0)
+    for i in range(n):
+        Sol[0][i] = func_bottom_bound(x0[i])
+        Sol[n - 1][i] = func_top_bound(x0[i])
 
     for i in range(n):
         Sol[i][0] = func_left_bound(y0[i])
         Sol[i][n-1] = func_right_bound(y0[i])
 
     n2 = n - 2
-    R = np.zeros((n2, n2))
+    R = [[0 for j in range(n2)] for i in range(n2)]
 
     # Populate matrix R with rho values
     for i in range(n2):
         for j in range(n2):
             R[i][j] = -alpha * source_func(x0[i+1], y0[j+1]) * h**2
 
-    R = np.transpose(R)
+    R = transpose_matrix(R)
 
     N2 = n2**2
-    B = np.zeros((n2, n2))
+    B = [[0 for j in range(n2)] for i in range(n2)]
 
     # Get contributions from boundary conditions
     B[0] = Sol[0][1:-1]
@@ -2914,11 +2918,17 @@ def poisson_solver(xa, xb, ya, yb, n, func_left_bound, func_right_bound, func_bo
     Ainv = np.linalg.inv(A)
 
     # Get dot product
-    rho = B - R
-    u = np.dot(Ainv, rho.flatten())
+    rho = subtract_matrix(B, R)
+    rho_flat = [item for row in rho for item in row]
+    u = [0.0] * len(rho_flat)
+
+    # Perform matrix-vector multiplication
+    for i in range(len(Ainv)):
+        for j in range(len(rho_flat)):
+            u[i] += Ainv[i][j] * rho_flat[j]
 
     # Reshape result to (n-2) x (n-2) matrix
-    matrix = u.reshape((n2, n2))
+    matrix = [u[i:i+n2] for i in range(0, len(u), n2)]
 
     # Update W with the (x, y) table
     for i in range(n2):
@@ -2948,6 +2958,9 @@ Returns:
 """
 
 def poisson_thomas_solver(n_x, n_y, x_length, y_length, get_BC_poisson):
+
+    x_length += 0.0001*x_length
+    y_length += 0.0001*y_length
 
     n_x += 1
     n_y += 1
