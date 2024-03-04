@@ -159,10 +159,10 @@ Returns:
 - Matrix with all elements rounded off to 2 decimal places
 """
 
-def round_matrix(M):
+def round_matrix(M, decimals=2):
     for i in range(len(M)):
         for j in range(len(M[0])):
-            M[i][j]=ROUND(M[i][j],2)
+            M[i][j]=ROUND(M[i][j], decimals)
     return M
 
 
@@ -1776,7 +1776,7 @@ Parameters:
 - n: Number of rows
 
 Returns:
-- Solution vector
+- Inverse of the matrix
 """
 
 def inverse_by_lu_decomposition (matrix, n):
@@ -1826,7 +1826,20 @@ def inverse_by_lu_decomposition (matrix, n):
     matrix_3 = LU_doolittle(matrix_3, n)
     x3 = for_back_subs_doolittle(matrix_3, n, identity[3])
     x.append(copy.deepcopy(x3))
-    
+
+    matrix_4 = copy.deepcopy(matrix)
+    partial_pivot_LU(matrix_4, identity[4], n)
+    matrix_4 = LU_doolittle(matrix_4, n)
+    x4 = for_back_subs_doolittle(matrix_4, n, identity[4])
+    x.append(copy.deepcopy(x4))
+
+    matrix_5 = copy.deepcopy(matrix)
+    partial_pivot_LU(matrix_5, identity[5], n)
+    matrix_5 = LU_doolittle(matrix_5, n)
+    x5 = for_back_subs_doolittle(matrix_5, n, identity[5])
+    x.append(copy.deepcopy(x5))
+
+
     # The x matrix to be transposed to get the inverse in desired form
     inverse = transpose_matrix(x)
     return (inverse)
@@ -2754,6 +2767,46 @@ def plot_3D_surface(X, Y, Sol, Title='3D surface plot', X_label='X', Y_label='Y'
     ax.set_zlabel(Z_label)
     ax.set_title(Title)
     return None
+
+
+########################################################################################################################
+
+
+"""
+Function to solve 1D heat diffusion equation using Explicit method
+
+Parameters:
+- L: Length of the rod
+- T_initial: Initial temperature
+- T_center: Temperature at the center
+- alpha: Thermal diffusivity
+- Nx: Number of spatial grid points
+- Nt: Number of time steps
+- dt: Time step size
+- dx: Spatial step size
+
+Returns:
+- x: Spatial grid
+- T: Temperature distribution over space and time
+"""
+def heat_diffusion(L, T_initial, T_center, alpha, Nx, Nt, dt, dx):
+    # Spatial grid
+    x = [i * L / Nx for i in range(Nx + 1)]
+    dx = L / Nx
+
+    # Initial temperature distribution
+    T = [[T_initial] * (Nx + 1) for _ in range(Nt + 1)]
+
+    # Set the initial condition (heating at the center)
+    T[0][int(Nx / 2)] = T_center
+
+    # Explicit finite difference method
+    for n in range(1, Nt + 1):
+        for i in range(1, Nx):
+            T[n][i] = T[n-1][i] + alpha * dt / dx**2 * (T[n-1][i-1] - 2 * T[n-1][i] + T[n-1][i+1])
+
+    return x, T
+
 
 
 ########################################################################################################################
