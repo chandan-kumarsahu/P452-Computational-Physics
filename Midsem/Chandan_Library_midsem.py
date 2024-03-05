@@ -2882,6 +2882,9 @@ Parameters:
 - dx: Spatial step size
 - dt: Time step size
 - Diff: Thermal diffusivity
+- init_cond: Initial condition function
+- source_term: Source term function
+- boundary: Boundary condition function
 
 Returns:
 - u: Temperature distribution over space and time
