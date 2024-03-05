@@ -2890,7 +2890,7 @@ Returns:
 """
 
 
-def crank_nicolson_diffusion(L, T, dx, dt, Diff, init_cond, source_term):
+def crank_nicolson_diffusion(L, T, dx, dt, Diff, init_cond, source_term, boundary):
 
     alpha = Diff * dt / (dx**2)
 
@@ -2906,7 +2906,7 @@ def crank_nicolson_diffusion(L, T, dx, dt, Diff, init_cond, source_term):
         Temp[i][0] = init_cond(x[i])
 
     # Get the matrices for solving the matrix using crank-nicolson method
-    A, B = diff_matrix_free_boundary(len(x), alpha)
+    A, B = boundary(len(x), alpha)
 
     Temp = np.array(Temp)
     A = np.array(A)
