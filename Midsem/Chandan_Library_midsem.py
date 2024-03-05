@@ -2737,7 +2737,7 @@ PARTIAL DIFFERENTIAL EQUATIONS
 
 - plot_3D_surface - Function to plot 3D surface plot
 - get_matrix_heat_diff - Get the matrices A and B for solving the heat diffusion equation using Crank-Nicolson method
-- crank_nicolson_heat_diffusion - Solve 1D heat diffusion equation using Crank-Nicolson method
+- crank_nicolson_diffusion - Solve 1D heat diffusion equation using Crank-Nicolson method
 - poisson_solver - Solve the Poisson equation using implicit finite difference method
 - poisson_thomas_solver - Solve the Poisson equation using Thomas algorithm
 """
@@ -2813,7 +2813,8 @@ def heat_diffusion(L, T_initial, T_center, alpha, Nx, Nt, dt, dx):
     
 
 """
-Get the matrices A and B for solving the heat diffusion equation using Crank-Nicolson method.
+Get the matrices A and B for solving the diffusion equation using Crank-Nicolson method.
+This function is used for free boundary conditions.
 
 Parameters:
 - N: Number of spatial grid points
@@ -2824,7 +2825,7 @@ Returns:
 - B: Matrix B
 """
 
-def get_matrix_heat_diff(N, sigma):
+def diff_matrix_free_boundary(N, sigma):
     A = [[0 for j in range(N)] for k in range(N)]
     B = [[0 for j in range(N)] for k in range(N)]
 
@@ -2839,6 +2840,37 @@ def get_matrix_heat_diff(N, sigma):
             B[i][i+1] = sigma
 
     return A, B
+
+
+"""
+Get the matrices A and B for solving the diffusion equation using Crank-Nicolson method.
+This function is used for isolated boundary conditions.
+
+Parameters:
+- N: Number of spatial grid points
+- sigma: alpha*dt/dx^2
+
+Returns:
+- A: Matrix A
+- B: Matrix B
+"""
+
+def diff_matrix_isolated_boundary(N, sigma):
+    diag_values = 2 + 2 * sigma
+    off_diag_values = -sigma
+
+    A = np.diag(diag_values * np.ones(N)) + np.diag(off_diag_values * np.ones(N - 1), 1) + np.diag(off_diag_values * np.ones(N - 1), -1)
+    B = np.diag((2 - 2 * sigma) * np.ones(N)) + np.diag(sigma * np.ones(N - 1), 1) + np.diag(sigma * np.ones(N - 1), -1)
+
+    # Boundary conditions
+    A[0, 0] = 1 + sigma
+    B[0, 0] = 1 - sigma
+    A[-1, -1] = 1 + sigma
+    B[-1, -1] = 1 - sigma
+
+    return A, B
+
+
 
 
 """
@@ -2858,7 +2890,7 @@ Returns:
 """
 
 
-def crank_nicolson_heat_diffusion(L, T, dx, dt, Diff, init_cond):
+def crank_nicolson_diffusion(L, T, dx, dt, Diff, init_cond, source_term):
 
     alpha = Diff * dt / (dx**2)
 
@@ -2874,16 +2906,17 @@ def crank_nicolson_heat_diffusion(L, T, dx, dt, Diff, init_cond):
         Temp[i][0] = init_cond(x[i])
 
     # Get the matrices for solving the matrix using crank-nicolson method
-    A, B = get_matrix_heat_diff(len(x), alpha)
+    A, B = diff_matrix_free_boundary(len(x), alpha)
 
     Temp = np.array(Temp)
     A = np.array(A)
     B = np.array(B)
 
-    for j in range(1, int(T/dt)+1):
-        Temp[:, j] = np.linalg.solve(A, np.dot(B, Temp[:, j - 1]))
+    for j in range(1, len(t)):
+        source_vector = np.array([source_term(xi, t[j]) for xi in x])
+        Temp[:, j] = np.linalg.solve(A, np.dot(B, Temp[:, j - 1]) + dt * source_vector)
 
-    return Temp, x, t
+    return Temp, np.array(x), np.array(t)
 
 
 ########################################################################################################################

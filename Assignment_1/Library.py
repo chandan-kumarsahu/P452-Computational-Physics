@@ -380,7 +380,7 @@ Returns:
 - t: Time grid
 """
 
-def crank_nicolson_heat_diffusion(L, T, dx, dt, Diff, init_cond):
+def crank_nicolson_diffusion(L, T, dx, dt, Diff, init_cond):
 
     alpha = Diff * dt / (dx**2)
 
