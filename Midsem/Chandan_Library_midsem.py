@@ -2826,18 +2826,24 @@ Returns:
 """
 
 def diff_matrix_free_boundary(N, sigma):
-    A = [[0 for j in range(N)] for k in range(N)]
-    B = [[0 for j in range(N)] for k in range(N)]
+    # Initialize matrices A and B with zeros
+    A = [[0] * N for _ in range(N)]
+    B = [[0] * N for _ in range(N)]
 
+    # Interior points
     for i in range(0, N):
-        A[i][i] = 2 + 2*sigma
-        B[i][i] = 2 - 2*sigma
+        A[i][i] = 2 + 2 * sigma  # Diagonal element of A
+        B[i][i] = 2 - 2 * sigma  # Diagonal element of B
+
+        # Connect to the left neighbor (if not on the left edge)
         if i > 0:
-            A[i][i-1] = -sigma
-            B[i][i-1] = sigma
-        if i < N-1:
-            A[i][i+1] = -sigma
-            B[i][i+1] = sigma
+            A[i][i - 1] = -sigma
+            B[i][i - 1] = sigma
+
+        # Connect to the right neighbor (if not on the right edge)
+        if i < N - 1:
+            A[i][i + 1] = -sigma
+            B[i][i + 1] = sigma
 
     return A, B
 
@@ -2856,21 +2862,32 @@ Returns:
 """
 
 def diff_matrix_isolated_boundary(N, sigma):
-    diag_values = 2 + 2 * sigma
-    off_diag_values = -sigma
+    # Initialize matrices A and B with zeros
+    A = [[0] * N for _ in range(N)]
+    B = [[0] * N for _ in range(N)]
 
-    A = np.diag(diag_values * np.ones(N)) + np.diag(off_diag_values * np.ones(N - 1), 1) + np.diag(off_diag_values * np.ones(N - 1), -1)
-    B = np.diag((2 - 2 * sigma) * np.ones(N)) + np.diag(sigma * np.ones(N - 1), 1) + np.diag(sigma * np.ones(N - 1), -1)
+    # Fill diagonal and off-diagonal values for matrices A and B
+    for i in range(N):
+        A[i][i] = 2 + 2 * sigma  # Diagonal element of A
+        B[i][i] = 2 - 2 * sigma  # Diagonal element of B
+
+        # Connect to the left neighbor (if not on the left edge)
+        if i > 0:
+            A[i][i - 1] = -sigma
+            B[i][i - 1] = sigma
+
+        # Connect to the right neighbor (if not on the right edge)
+        if i < N - 1:
+            A[i][i + 1] = -sigma
+            B[i][i + 1] = sigma
 
     # Boundary conditions
-    A[0, 0] = 1 + sigma
-    B[0, 0] = 1 - sigma
-    A[-1, -1] = 1 + sigma
-    B[-1, -1] = 1 - sigma
+    A[0][0] = 2 + sigma
+    B[0][0] = 2 - sigma
+    A[-1][-1] = 2 + sigma
+    B[-1][-1] = 2 - sigma
 
     return A, B
-
-
 
 
 """
