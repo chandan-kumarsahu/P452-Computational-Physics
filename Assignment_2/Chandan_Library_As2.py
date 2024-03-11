@@ -1341,6 +1341,32 @@ def transpose_matrix(A):
 
 
 """
+Function to convert a string fraction to float
+
+Parameters:
+- frac_str: Fraction in string format
+
+Returns:
+- Fraction in float format
+"""
+def convert_to_float(frac_str):
+    try:
+        return float(frac_str)
+    except ValueError:
+        num, denom = frac_str.split('/')
+        try:
+            leading, num = num.split(' ')
+            whole = float(leading)
+        except ValueError:
+            whole = 0
+        frac = float(num) / float(denom)
+        return whole - frac if whole < 0 else whole + frac
+
+
+########################################################################################################################
+
+
+"""
 Function for reading the matrix from a text file
 
 Parameters:
@@ -1352,7 +1378,7 @@ Returns:
 
 def read_matrix(txt):
     with open(txt, 'r') as a:
-        matrix=[[float(num) for num in row.split(' ')] for row in a ]
+        matrix=[[convert_to_float(num) for num in row.split(' ')] for row in a ]
     row=len(matrix)
     column=len(matrix[0])
     return matrix, row, column
@@ -1636,6 +1662,18 @@ def check_positive_definite(mat):
 
 ########################################################################################################################
 
+def deaugment_matrix(matrix):
+    n=len(matrix)
+    vec = [0 for i in range(n)]
+    mat=[[0 for j in range(n)] for i in range(n)]
+    for i in range(n):
+        for j in range(n):
+            mat[i][j] = matrix[i][j]
+        vec[i] = matrix[i][n]
+    return mat, vec
+
+########################################################################################################################
+
 
 """
 LU decomposition using Doolittle's condition L[i][i]=1 without making separate L and U matrices
@@ -1803,10 +1841,10 @@ def inverse_by_lu_decomposition (matrix, n):
     '''
     
     for i in range(n):
-        matrix_0 = copy.deepcopy(matrix)
-        partial_pivot_LU(matrix_0, identity[i], n)
-        matrix_0 = LU_doolittle(matrix_0, n)
-        x0 = for_back_subs_doolittle(matrix_0, n, identity[i])
+        matrix = copy.deepcopy(matrix)
+        partial_pivot_LU(matrix, identity[i], n)
+        matrix = LU_doolittle(matrix, n)
+        x0 = for_back_subs_doolittle(matrix, n, identity[i])
         x.append(copy.deepcopy(x0))
 
     # The x matrix to be transposed to get the inverse in desired form
@@ -2027,6 +2065,40 @@ def gauss_seidel(matrix, b, tol=1e-6):
         p += 1
 
     return X
+
+
+########################################################################################################################
+
+
+"""
+Function to solve a system of linear equations using the Conjugate Gradient method
+
+Parameters:
+- A: Coefficient matrix
+- b: RHS vector
+- x: Initial guess for the solution
+- tol: Tolerance for convergence
+- max_iter: Maximum number of iterations
+
+Returns:
+- x: Solution of the system of linear equations
+"""
+def Conjugate_Gradient(Mat, vec, x = None, tol = 1e-7, max_iter = 1000):
+    n = len(Mat)
+    if x is None: x = np.ones(n)
+    r = vec - np.dot(Mat,x)
+    d = r
+    count = 0
+    while (np.dot(r,r)>tol and count<max_iter):
+        rn = np.dot(r,r)
+        a = (rn)/(np.dot(d,np.dot(Mat,d)))
+        x += a*d
+        r -= a*np.dot(Mat,d)
+
+        vec = np.dot(r,r)/rn
+        d = r + vec*d
+        count += 1
+    return x
 
 
 ########################################################################################################################
