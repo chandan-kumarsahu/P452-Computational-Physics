@@ -180,7 +180,7 @@ Returns:
 - Derivative of the function at the given x
 """
 
-def derivative(f, x):
+def derivative(f, x, h=1e-6):
     h=10**-8
     dy_dx=(f(x+h)-f(x))/h # Derivative algorithm
     return dy_dx
@@ -197,7 +197,7 @@ Returns:
 - Double derivative of the function at the given x
 """
 
-def double_derivative(f, x, h=1e-4):
+def double_derivative(f, x, h=1e-6):
     # Calculate the second derivative using finite differences
     d2y_dx2 = (f(x + h) - 2 * f(x) + f(x - h)) / (h**2)
     return d2y_dx2
