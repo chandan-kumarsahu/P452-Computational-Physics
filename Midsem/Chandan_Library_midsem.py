@@ -1302,7 +1302,11 @@ Returns:
 - Product of the two matrices
 """
 
-def multiply_matrix(A, r1, c1, B, r2, c2):
+def multiply_matrix(A, B):
+    r1 = len(A)
+    c1 = len(A[0])
+    r2 = len(B)
+    c2 = len(B[0])
     if c1==r2: # checking compatibility
         C=[[0 for i in range(c2)] for j in range(r1)] # initializing matrix C
         for i in range(r1):
@@ -1928,7 +1932,7 @@ def LU_do2(M,n):
     print_matrix(U,n,n)
 
     # To check if the L and U matrices are correct, use this for verification
-    m,r,c=multiply_matrix(L, n, n, U, n, n)
+    m,r,c=multiply_matrix(L, U)
     print_matrix(m,r,c)
     
     return M
