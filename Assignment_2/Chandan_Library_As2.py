@@ -4,6 +4,7 @@ import math
 
 import matplotlib.pyplot as plt
 import numpy as np
+from tqdm import tqdm
 
 ########################################################################################################################
 
@@ -1178,17 +1179,17 @@ Returns:
 """
 
 
-def print_matrix(A):
-    r = len(A)
-    c = len(A[0])
-    for i in range(r):
-        for j in range(c):
-            # prints the matrix with appropriate spaces for easy understanding
-            print(str(A[i][j]).ljust(7), end="")
+def print_matrix(Mat):
+    if Mat is None:
+        print("Matrix is empty")
+        return None
+    else:
+        for i in range(len(Mat)):
+            for j in range(len(Mat[0])):
+                # prints the matrix with appropriate spaces for easy understanding
+                print(str(Mat[i][j]).ljust(7), end="")
+            print()
         print()
-    print()
-
-
 
 """
 Function to print a matrix
@@ -1201,13 +1202,13 @@ Returns:
 """
 
 
-def print_matrix_with_gap(A):
-    r = len(A)
-    c = len(A[0])
+def print_matrix_with_gap(Mat):
+    r = len(Mat)
+    c = len(Mat[0])
     for i in range(r):
         for j in range(c):
             # prints the matrix with appropriate spaces for easy understanding
-            print(A[i][j], end="    ")
+            print(Mat[i][j], end="    ")
         print()
     print()
 
@@ -1226,15 +1227,33 @@ Returns:
 - Sum of the two matrices
 """
 
-def add_matrix(A, B):
-    r = len(A)
-    c = len(A[0])
-    C=[[0 for i in range(c)] for j in range(r)]
-    for i in range(r):
-        for j in range(c):
-            C[i][j]=A[i][j]+B[i][j] # Addition algorithm
-    return C
-
+def add_matrix(Mat_A, Mat_B):
+    if isinstance(Mat_A[0], list) and isinstance(Mat_B[0], list):
+        # Matrices addition
+        if len(Mat_A) != len(Mat_B) or len(Mat_A[0]) != len(Mat_B[0]):
+            print("Matrices must have the same dimensions for addition.")
+            return None
+        
+        Mat_C = [[0 for _ in range(len(Mat_A[0]))] for _ in range(len(Mat_A))]
+        for i in range(len(Mat_A)):
+            for j in range(len(Mat_A[0])):
+                Mat_C[i][j] = Mat_A[i][j] + Mat_B[i][j]
+        
+        return Mat_C
+    elif isinstance(Mat_A[0], (int, float)) and isinstance(Mat_B[0], (int, float)):
+        # Vectors addition
+        if len(Mat_A) != len(Mat_B):
+            print("Vectors must have the same length for addition.")
+            return None
+        
+        Vec_C = [0 for _ in range(len(Mat_A))]
+        for i in range(len(Mat_A)):
+            Vec_C[i] = Mat_A[i] + Mat_B[i]
+        
+        return Vec_C
+    else:
+        print("Unsupported input types for addition.")
+        return None
 
 ########################################################################################################################
 
@@ -1250,14 +1269,33 @@ Returns:
 - Difference of the two matrices
 """
 
-def subtract_matrix(A, B):
-    r = len(A)
-    c = len(A[0])
-    C=[[0 for i in range(c)] for j in range(r)]
-    for i in range(r):
-        for j in range(c):
-            C[i][j] = A[i][j] - B[i][j] # Subtraction algorithm
-    return C
+def subtract_matrix(Mat_A, Mat_B):
+    if isinstance(Mat_A[0], list) and isinstance(Mat_B[0], list):
+        # Matrices addition
+        if len(Mat_A) != len(Mat_B) or len(Mat_A[0]) != len(Mat_B[0]):
+            print("Matrices must have the same dimensions for subtraction.")
+            return None
+        
+        Mat_C = [[0 for _ in range(len(Mat_A[0]))] for _ in range(len(Mat_A))]
+        for i in range(len(Mat_A)):
+            for j in range(len(Mat_A[0])):
+                Mat_C[i][j] = Mat_A[i][j] - Mat_B[i][j]
+        
+        return Mat_C
+    elif isinstance(Mat_A[0], (int, float)) and isinstance(Mat_B[0], (int, float)):
+        # Vectors addition
+        if len(Mat_A) != len(Mat_B):
+            print("Vectors must have the same length for subtraction.")
+            return None
+        
+        Vec_C = [0 for _ in range(len(Mat_A))]
+        for i in range(len(Mat_A)):
+            Vec_C[i] = Mat_A[i] - Mat_B[i]
+        
+        return Vec_C
+    else:
+        print("Unsupported input types for subtraction.")
+        return None
 
 
 ########################################################################################################################
@@ -1274,15 +1312,21 @@ Returns:
 - Product of the matrix and the scalar
 """
 
-def multiply_scalar(A, s):
-    r = len(A)
-    c = len(A[0])
-    B=[[0 for i in range(c)] for j in range(r)]
-    for i in range(r):
-        for j in range(c):
-            B[i][j]=s*A[i][j] # Multiplication algorithm
-    return B
-
+def multiply_scalar(Mat_A, s):
+    if isinstance(Mat_A[0], list):
+        # Matrix scalar multiplication
+        Mat_C = [[0 for _ in range(len(Mat_A[0]))] for _ in range(len(Mat_A))]
+        for i in range(len(Mat_A)):
+            for j in range(len(Mat_A[0])):
+                Mat_C[i][j] = s * Mat_A[i][j]
+        return Mat_C
+    elif isinstance(Mat_A, list) and all(isinstance(element, (int, float)) for element in Mat_A):
+        # Vector scalar multiplication
+        Vec_C = [s * element for element in Mat_A]
+        return Vec_C
+    else:
+        print("Unsupported input type for scalar multiplication.")
+        return None
 
 ########################################################################################################################
 
@@ -1302,20 +1346,57 @@ Returns:
 - Product of the two matrices
 """
 
-def multiply_matrix(A, B):
-    r1 = len(A)
-    c1 = len(A[0])
-    r2 = len(B)
-    c2 = len(B[0])
-    if c1==r2: # checking compatibility
-        C=[[0 for i in range(c2)] for j in range(r1)] # initializing matrix C
-        for i in range(r1):
-            for j in range(c2):
-                for k in range(c2):
-                    C[i][j]+=float(A[i][k])*float(B[k][j]) # multiplication algorithm
-        return C, r1, c2
+def multiply_matrix(Mat_A, Mat_B):
+
+    # Checking if A and B are both matrices
+    if isinstance(Mat_A[0], list) and isinstance(Mat_B[0], list):
+        # Matrix x Matrix multiplication
+        if len(Mat_A[0]) == len(Mat_B):
+            C = [[0 for _ in range(len(Mat_B[0]))] for _ in range(len(Mat_A))]
+            for i in range(len(Mat_A)):
+                for j in range(len(Mat_B[0])):
+                    for k in range(len(Mat_B)):
+                        C[i][j] += float(Mat_A[i][k]) * float(Mat_B[k][j])
+            return C
+        else:
+            print("Matrices incompatible for multiplication")
+            return None
+
+    # Vector x Matrix multiplication
+    elif isinstance(Mat_A, list) and isinstance(Mat_B[0], list):
+        if len(Mat_A) == len(Mat_B):
+            C = [0 for _ in range(len(Mat_B[0]))]
+            for i in range(len(Mat_B[0])):
+                for j in range(len(Mat_B)):
+                    C[i] += float(Mat_A[j]) * float(Mat_B[j][i])
+            return C
+        else:
+            print("Vector and matrix incompatible for multiplication")
+            return None
+
+    # Matrix x Vector multiplication
+    elif isinstance(Mat_A[0], list) and isinstance(Mat_B, list):
+        if len(Mat_A[0]) == len(Mat_B):
+            C = [0 for _ in range(len(Mat_A))]
+            for i in range(len(Mat_A)):
+                for j in range(len(Mat_B)):
+                    C[i] += float(Mat_A[i][j]) * float(Mat_B[j])
+            return C
+        else:
+            print("Matrix and vector incompatible for multiplication")
+            return None
+
+    # Vector x Vector (dot product)
+    elif isinstance(Mat_A, list) and isinstance(Mat_B, list):
+        if len(Mat_A) == len(Mat_B):
+            C = sum(float(a) * float(b) for a, b in zip(Mat_A, Mat_B))
+            return C
+        else:
+            print("Vectors of different sizes cannot be multiplied")
+            return None
     else:
-        print("matrices incompatible for multiplication")
+        print("Unsupported types for multiplication")
+        return None
 
 
 ########################################################################################################################
@@ -1331,13 +1412,13 @@ Returns:
 - Transpose of the matrix
 """
 
-def transpose_matrix(A):
-    r = len(A)
-    c = len(A[0])
+def transpose_matrix(Mat):
+    r = len(Mat)
+    c = len(Mat[0])
     B = [[0 for x in range(r)] for y in range(c)] 
     for i in range(r):
         for j in range(c):
-            B[j][i]=A[i][j]
+            B[j][i]=Mat[i][j]
     return B
 
 
@@ -1403,11 +1484,11 @@ Returns:
 - Matrix with row1 and row2 swapped
 """
 
-def swap_rows(A, row1, row2):
-    temp = A[row1]
-    A[row1] = A[row2]
-    A[row2] = temp
-    return A
+def swap_rows(Mat, row1, row2):
+    temp = Mat[row1]
+    Mat[row1] = Mat[row2]
+    Mat[row2] = temp
+    return Mat
 
 
 
@@ -1423,22 +1504,22 @@ Returns:
 - Augmented matrix with partial pivoting
 """
 
-def partial_pivot(Ab, m, nrows):
-    pivot = Ab[m][m]    # declaring the pivot
-    if (Ab[m][m] != 0):
-        return Ab    # return if partial pivot is not required
+def partial_pivot(Mat_Ab, m, nrows):
+    pivot = Mat_Ab[m][m]    # declaring the pivot
+    if (Mat_Ab[m][m] != 0):
+        return Mat_Ab    # return if partial pivot is not required
     else:
         for r in range(m+1,nrows):
-            pivot=Ab[r][m]
+            pivot=Mat_Ab[r][m]
             # check for non-zero pivot and swap rows with it
             for k in range(m+1,nrows):
-                if abs(Ab[k][m])>pivot:
-                    pivot=Ab[k][m]
+                if abs(Mat_Ab[k][m])>pivot:
+                    pivot=Mat_Ab[k][m]
                     r=k
-            if Ab[r][m] != 0:
-                pivot = Ab[r][m]
-                Ab=swap_rows(Ab,m,r)
-                return Ab
+            if Mat_Ab[r][m] != 0:
+                pivot = Mat_Ab[r][m]
+                Mat_Ab=swap_rows(Mat_Ab,m,r)
+                return Mat_Ab
             else:
                 r+=1
     if (pivot==0):    # no unique solution case
@@ -1460,35 +1541,35 @@ Returns:
 - Augmented matrix after Gauss Jordan elimination
 """
 
-def gauss_jordan(Ab,nrows,ncols):
+def gauss_jordan(Mat_Ab, nrows, ncols):
     det=1
     r=0
     # does partial pivoting
-    Ab = partial_pivot(Ab,r,nrows)
+    Mat_Ab = partial_pivot(Mat_Ab,r,nrows)
     for r in range(0,nrows):
         # no solution case
-        if Ab==None:
-            return Ab
+        if Mat_Ab==None:
+            return Mat_Ab
         else:
             # Changes the diagonal elements to unity
-            fact=Ab[r][r]
+            fact=Mat_Ab[r][r]
             if fact==0:
                 # does partial pivoting
-                Ab = partial_pivot(Ab,r,nrows)
-            fact=Ab[r][r]
+                Mat_Ab = partial_pivot(Mat_Ab,r,nrows)
+            fact=Mat_Ab[r][r]
             det=det*fact # calculates the determinant
             for c in range(r,ncols):
-                Ab[r][c]*=1/fact
+                Mat_Ab[r][c]*=1/fact
             # Changes the off-diagonal elements to zero
             for r1 in range(0,nrows):
                 # does not change if it is already done
-                if (r1==r or Ab[r1][r]==0):
+                if (r1==r or Mat_Ab[r1][r]==0):
                     r1+=1
                 else:
-                    factor = Ab[r1][r]
+                    factor = Mat_Ab[r1][r]
                     for c in range(r,ncols):
-                        Ab[r1][c]-= factor * Ab[r][c]
-    return Ab, det
+                        Mat_Ab[r1][c]-= factor * Mat_Ab[r][c]
+    return Mat_Ab, det
 
 
 ########################################################################################################################
@@ -1505,13 +1586,13 @@ Returns:
 - Inverse matrix
 """
 
-def get_inv_GJ(A,n):
-    r=len(A)
-    c=len(A[0])
+def get_inv_GJ(Mat, n):
+    r=len(Mat)
+    c=len(Mat[0])
     M=[[0 for j in range(n)] for i in range(n)]
     for i in range(r):
         for j in range(n,c):
-            M[i][j-n]=A[i][j]
+            M[i][j-n]=Mat[i][j]
     return M
 
 
@@ -1531,44 +1612,44 @@ Returns:
 """
 
 
-def gauss_jordan_steps(Ab,nrows,ncols):
+def gauss_jordan_steps(Mat_Ab, nrows, ncols):
     # does partial pivoting
     det=1
     r=0
-    Ab = partial_pivot(Ab,r,nrows)
+    Mat_Ab = partial_pivot(Mat_Ab,r,nrows)
     for r in range(0,nrows):
         # no solution case
-        if Ab==None:
-            return Ab
+        if Mat_Ab==None:
+            return Mat_Ab
         else:
             # Changes the diagonal elements to unity
             print("value of  r  =  "+str(r))
-            print_matrix(Ab,nrows,ncols)
-            fact=Ab[r][r]
+            print_matrix(Mat_Ab,nrows,ncols)
+            fact=Mat_Ab[r][r]
             if fact==0:
                 # does partial pivoting
-                Ab = partial_pivot(Ab,r,nrows)
-            fact=Ab[r][r]
+                Mat_Ab = partial_pivot(Mat_Ab,r,nrows)
+            fact=Mat_Ab[r][r]
             print("changing values of diagonal")
             det=det*fact # calculates the determinant
             for c in range(r,ncols):
                 print("fact value  =  "+str(fact))
-                Ab[r][c]*=1/fact
-                print_matrix(Ab,nrows,ncols)
+                Mat_Ab[r][c]*=1/fact
+                print_matrix(Mat_Ab,nrows,ncols)
                 print("loop -> value of  c  =  "+str(c))
             # Changes the off-diagonal elements to zero
             print("Now changing values other than diagonal")
             for r1 in range(0,nrows):
                 # does not change if it is already done
                 print("loop -> value of  r1  =  "+str(r1)+"  when  r  =  "+str(r))
-                if (r1==r or Ab[r1][r]==0):
+                if (r1==r or Mat_Ab[r1][r]==0):
                     r1+=1
                 else:
-                    factor = Ab[r1][r]
+                    factor = Mat_Ab[r1][r]
                     for c in range(r,ncols):
-                        Ab[r1][c]-= factor * Ab[r][c]
-                print_matrix(Ab,nrows,ncols)
-    return Ab, det
+                        Mat_Ab[r1][c]-= factor * Mat_Ab[r][c]
+                print_matrix(Mat_Ab,nrows,ncols)
+    return Mat_Ab, det
 
 
 ########################################################################################################################
@@ -1970,8 +2051,8 @@ def LU_do2(M,n):
     print_matrix(U,n,n)
 
     # To check if the L and U matrices are correct, use this for verification
-    m,r,c=multiply_matrix(L, U)
-    print_matrix(m,r,c)
+    m=multiply_matrix(L, U)
+    print_matrix(m)
     
     return M
 
@@ -2074,6 +2155,30 @@ def gauss_seidel(matrix, b, tol=1e-6):
 ########################################################################################################################
 
 
+def get_trace(Mat):
+    trace = 0
+    for i in range(len(Mat)):
+        trace += Mat[i][i]
+    return trace
+
+def inner_product(Mat_A, Mat_B):
+    if isinstance(Mat_A[0], list) and isinstance(Mat_B[0], list):
+        # Matrices inner product
+        IP = multiply_matrix(Mat_A, transpose_matrix(Mat_B))
+        return get_trace(IP)
+    elif isinstance(Mat_A[0], (int, float)) and isinstance(Mat_B[0], (int, float)):
+        # Vectors inner product
+        if len(Mat_A) != len(Mat_B):
+            print("Vectors must have the same length for inner product.")
+            return None
+        IP = 0
+        for i in range(len(Mat_A)):
+            IP += Mat_A[i] * Mat_B[i]
+        return IP
+    else:
+        print("Unsupported input types for inner product.")
+        return None
+
 """
 Function to solve a system of linear equations using the Conjugate Gradient method
 
@@ -2087,22 +2192,77 @@ Parameters:
 Returns:
 - x: Solution of the system of linear equations
 """
-def Conjugate_Gradient(Mat, vec, x = None, tol = 1e-7, max_iter = 1000):
-    n = len(Mat)
-    if x is None: x = np.ones(n)
-    r = vec - np.dot(Mat,x)
-    d = r
-    count = 0
-    while (np.dot(r,r)>tol and count<max_iter):
-        rn = np.dot(r,r)
-        a = (rn)/(np.dot(d,np.dot(Mat,d)))
-        x += a*d
-        r -= a*np.dot(Mat,d)
 
-        vec = np.dot(r,r)/rn
-        d = r + vec*d
-        count += 1
-    return x
+
+def multiply_matrix_otf(matrix_func, B):
+    n = np.sqrt(len(B)).astype(int)
+    m = [0 for x in range(len(B))]
+    for i in range(len(B)):
+        for j in range(len(B)):
+            m[i] = m[i] + (matrix_func(i,j, n) * B[j])
+    return m
+
+
+
+def Conjugate_Gradient(Mat, Vec, x0=None, tol=1e-10):
+
+    # THE CONJUGATE GRADIENT CODE WHEN MATRIX IS GIVEN
+    # Check if the variable is a matrix (list of lists)
+    if isinstance(Mat, list) and isinstance(Mat[0], list)==True:
+
+        if x0 is None: x0 = [0 for i in range(len(Vec))]
+        r = subtract_matrix(Vec, multiply_matrix(Mat, x0))      # r = vec - Mat*x0
+        d = copy.deepcopy(r)
+        iteration, residue = [], []
+        count = 0
+        
+        while math.sqrt(inner_product(r, r)) > tol and count <= 1000:
+            rk_rk = inner_product(r, r)
+
+            alpha = rk_rk/inner_product(d, multiply_matrix(Mat, d))
+            
+            x0 = add_matrix(x0, multiply_scalar(d, alpha))
+            r = subtract_matrix(r, multiply_scalar(multiply_matrix(Mat, d), alpha))
+            
+            beta = inner_product(r, r)/rk_rk
+            d = add_matrix(r, multiply_scalar(d, beta))
+            
+            count = count+1
+            iteration.append(count)
+            residue.append(math.sqrt(inner_product(r, r)))
+        return x0, iteration, residue
+
+    # THE CONJUGATE GRADIENT CODE WHEN MATRIX FUNCTION INSTEAD OF MATRIX
+    # Check if the variable is function (i.e., it is callable or not)
+    elif hasattr(Mat, '__call__')==True:
+
+        if x0 is None: x0 = [0 for i in range(len(Vec))]
+        k = multiply_matrix_otf(Mat, x0)
+        r_otf = subtract_matrix(Vec, k)
+        d_otf = copy.deepcopy(r_otf)
+        iteration, residue = [], []
+        count = 0
+
+        while math.sqrt(inner_product(r_otf, r_otf)) > tol and count <= 1000:
+            rk_rk_otf = inner_product(r_otf, r_otf)
+
+            alpha_otf = rk_rk_otf/inner_product(d_otf, multiply_matrix_otf(Mat, d_otf))
+
+            x0 = add_matrix(x0, multiply_scalar(d_otf, alpha_otf))
+            r_otf = subtract_matrix(r_otf, multiply_scalar(multiply_matrix_otf(Mat, d_otf), alpha_otf))
+
+            beta_otf = inner_product(r_otf, r_otf)/rk_rk_otf
+            d_otf = add_matrix(r_otf, multiply_scalar(d_otf, beta_otf))
+            
+            count = count+1
+            iteration.append(count)
+            residue.append(math.sqrt(inner_product(r_otf, r_otf)))
+        return x0, iteration, residue
+
+    else: 
+        print("Invalid input")
+        return None, None, None
+
 
 
 ########################################################################################################################

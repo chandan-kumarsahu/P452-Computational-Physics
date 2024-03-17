@@ -180,7 +180,7 @@ Returns:
 - Derivative of the function at the given x
 """
 
-def derivative(f, x):
+def derivative(f, x, h=1e-6):
     h=10**-8
     dy_dx=(f(x+h)-f(x))/h # Derivative algorithm
     return dy_dx
@@ -197,7 +197,7 @@ Returns:
 - Double derivative of the function at the given x
 """
 
-def double_derivative(f, x, h=1e-4):
+def double_derivative(f, x, h=1e-6):
     # Calculate the second derivative using finite differences
     d2y_dx2 = (f(x + h) - 2 * f(x) + f(x - h)) / (h**2)
     return d2y_dx2
@@ -1179,16 +1179,16 @@ Returns:
 
 
 def print_matrix(A):
-    r = len(A)
-    c = len(A[0])
-    for i in range(r):
-        for j in range(c):
-            # prints the matrix with appropriate spaces for easy understanding
-            print(str(A[i][j]).ljust(7), end="")
+    if A is None:
+        print("Matrix is empty")
+        return None
+    else:
+        for i in range(len(A)):
+            for j in range(len(A[0])):
+                # prints the matrix with appropriate spaces for easy understanding
+                print(str(A[i][j]).ljust(7), end="")
+            print()
         print()
-    print()
-
-
 
 """
 Function to print a matrix
@@ -1256,7 +1256,7 @@ def subtract_matrix(A, B):
     C=[[0 for i in range(c)] for j in range(r)]
     for i in range(r):
         for j in range(c):
-            C[i][j]=A[i][j]-B[i][j] # Subtraction algorithm
+            C[i][j] = A[i][j] - B[i][j] # Subtraction algorithm
     return C
 
 
@@ -1303,19 +1303,56 @@ Returns:
 """
 
 def multiply_matrix(A, B):
-    r1 = len(A)
-    c1 = len(A[0])
-    r2 = len(B)
-    c2 = len(B[0])
-    if c1==r2: # checking compatibility
-        C=[[0 for i in range(c2)] for j in range(r1)] # initializing matrix C
-        for i in range(r1):
-            for j in range(c2):
-                for k in range(c2):
-                    C[i][j]+=float(A[i][k])*float(B[k][j]) # multiplication algorithm
-        return C, r1, c2
+
+    # Checking if A and B are both matrices
+    if isinstance(A[0], list) and isinstance(B[0], list):
+        # Matrix x Matrix multiplication
+        if len(A[0]) == len(B):
+            C = [[0 for _ in range(len(B[0]))] for _ in range(len(A))]
+            for i in range(len(A)):
+                for j in range(len(B[0])):
+                    for k in range(len(B)):
+                        C[i][j] += float(A[i][k]) * float(B[k][j])
+            return C
+        else:
+            print("Matrices incompatible for multiplication")
+            return None
+
+    # Vector x Matrix multiplication
+    elif isinstance(A, list) and isinstance(B[0], list):
+        if len(A) == len(B):
+            C = [0 for _ in range(len(B[0]))]
+            for i in range(len(B[0])):
+                for j in range(len(B)):
+                    C[i] += float(A[j]) * float(B[j][i])
+            return C
+        else:
+            print("Vector and matrix incompatible for multiplication")
+            return None
+
+    # Matrix x Vector multiplication
+    elif isinstance(A[0], list) and isinstance(B, list):
+        if len(A[0]) == len(B):
+            C = [0 for _ in range(len(A))]
+            for i in range(len(A)):
+                for j in range(len(B)):
+                    C[i] += float(A[i][j]) * float(B[j])
+            return C
+        else:
+            print("Matrix and vector incompatible for multiplication")
+            return None
+
+    # Vector x Vector (dot product)
+    elif isinstance(A, list) and isinstance(B, list):
+        if len(A) == len(B):
+            C = sum(float(a) * float(b) for a, b in zip(A, B))
+            return C
+        else:
+            print("Vectors of different sizes cannot be multiplied")
+            return None
     else:
-        print("matrices incompatible for multiplication")
+        print("Unsupported types for multiplication")
+        return None
 
 
 ########################################################################################################################
@@ -1345,6 +1382,32 @@ def transpose_matrix(A):
 
 
 """
+Function to convert a string fraction to float
+
+Parameters:
+- frac_str: Fraction in string format
+
+Returns:
+- Fraction in float format
+"""
+def convert_to_float(frac_str):
+    try:
+        return float(frac_str)
+    except ValueError:
+        num, denom = frac_str.split('/')
+        try:
+            leading, num = num.split(' ')
+            whole = float(leading)
+        except ValueError:
+            whole = 0
+        frac = float(num) / float(denom)
+        return whole - frac if whole < 0 else whole + frac
+
+
+########################################################################################################################
+
+
+"""
 Function for reading the matrix from a text file
 
 Parameters:
@@ -1356,7 +1419,7 @@ Returns:
 
 def read_matrix(txt):
     with open(txt, 'r') as a:
-        matrix=[[float(num) for num in row.split(' ')] for row in a ]
+        matrix=[[convert_to_float(num) for num in row.split(' ')] for row in a ]
     row=len(matrix)
     column=len(matrix[0])
     return matrix, row, column
@@ -1640,6 +1703,18 @@ def check_positive_definite(mat):
 
 ########################################################################################################################
 
+def deaugment_matrix(matrix):
+    n=len(matrix)
+    vec = [0 for i in range(n)]
+    mat=[[0 for j in range(n)] for i in range(n)]
+    for i in range(n):
+        for j in range(n):
+            mat[i][j] = matrix[i][j]
+        vec[i] = matrix[i][n]
+    return mat, vec
+
+########################################################################################################################
+
 
 """
 LU decomposition using Doolittle's condition L[i][i]=1 without making separate L and U matrices
@@ -1807,10 +1882,10 @@ def inverse_by_lu_decomposition (matrix, n):
     '''
     
     for i in range(n):
-        matrix_0 = copy.deepcopy(matrix)
-        partial_pivot_LU(matrix_0, identity[i], n)
-        matrix_0 = LU_doolittle(matrix_0, n)
-        x0 = for_back_subs_doolittle(matrix_0, n, identity[i])
+        matrix = copy.deepcopy(matrix)
+        partial_pivot_LU(matrix, identity[i], n)
+        matrix = LU_doolittle(matrix, n)
+        x0 = for_back_subs_doolittle(matrix, n, identity[i])
         x.append(copy.deepcopy(x0))
 
     # The x matrix to be transposed to get the inverse in desired form
@@ -2031,6 +2106,40 @@ def gauss_seidel(matrix, b, tol=1e-6):
         p += 1
 
     return X
+
+
+########################################################################################################################
+
+
+"""
+Function to solve a system of linear equations using the Conjugate Gradient method
+
+Parameters:
+- A: Coefficient matrix
+- b: RHS vector
+- x: Initial guess for the solution
+- tol: Tolerance for convergence
+- max_iter: Maximum number of iterations
+
+Returns:
+- x: Solution of the system of linear equations
+"""
+def Conjugate_Gradient(Mat, vec, x = None, tol = 1e-7, max_iter = 1000):
+    n = len(Mat)
+    if x is None: x = np.ones(n)
+    r = vec - np.dot(Mat,x)
+    d = r
+    count = 0
+    while (np.dot(r,r)>tol and count<max_iter):
+        rn = np.dot(r,r)
+        a = (rn)/(np.dot(d,np.dot(Mat,d)))
+        x += a*d
+        r -= a*np.dot(Mat,d)
+
+        vec = np.dot(r,r)/rn
+        d = r + vec*d
+        count += 1
+    return x
 
 
 ########################################################################################################################
