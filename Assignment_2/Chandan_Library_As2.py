@@ -1346,6 +1346,7 @@ Returns:
 - Product of the two matrices
 """
 
+
 def multiply_matrix(Mat_A, Mat_B):
 
     # Checking if A and B are both matrices
@@ -1413,14 +1414,19 @@ Returns:
 """
 
 def transpose_matrix(Mat):
-    r = len(Mat)
-    c = len(Mat[0])
-    B = [[0 for x in range(r)] for y in range(c)] 
-    for i in range(r):
-        for j in range(c):
-            B[j][i]=Mat[i][j]
-    return B
-
+    if isinstance(Mat[0], list):
+        # Transpose of matrix
+        B = [[0 for i in range(len(Mat))] for j in range(len(Mat[0]))] 
+        for i in range(len(Mat)):
+            for j in range(len(Mat[0])):
+                B[j][i] = Mat[i][j]
+        return B
+    elif isinstance(Mat, list) and all(isinstance(element, (int, float)) for element in Mat):
+        # Transpose of vector
+        return [[element] for element in Mat]
+    else:
+        print("Unsupported input type for transpose.")
+        return None
 
 ########################################################################################################################
 
