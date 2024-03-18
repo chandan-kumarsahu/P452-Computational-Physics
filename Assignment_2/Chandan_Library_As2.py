@@ -2200,17 +2200,10 @@ Returns:
 """
 
 
-def multiply_matrix_otf(matrix_func, B):
-    n = np.sqrt(len(B)).astype(int)
-    m = [0 for x in range(len(B))]
-    for i in range(len(B)):
-        for j in range(len(B)):
-            m[i] = m[i] + (matrix_func(i,j, n) * B[j])
-    return m
 
 
 
-def Conjugate_Gradient(Mat, Vec, x0=None, tol=1e-10):
+def Conjugate_Gradient(Mat, Vec, x0=None, tol=1e-10, plot=False, max_iter=1000):
 
     # THE CONJUGATE GRADIENT CODE WHEN MATRIX IS GIVEN
     # Check if the variable is a matrix (list of lists)
@@ -2219,10 +2212,10 @@ def Conjugate_Gradient(Mat, Vec, x0=None, tol=1e-10):
         if x0 is None: x0 = [0 for i in range(len(Vec))]
         r = subtract_matrix(Vec, multiply_matrix(Mat, x0))      # r = vec - Mat*x0
         d = copy.deepcopy(r)
-        iteration, residue = [], []
+        iterations, residue = [], []
         count = 0
         
-        while math.sqrt(inner_product(r, r)) > tol and count <= 1000:
+        while math.sqrt(inner_product(r, r)) > tol and count <= max_iter:
             rk_rk = inner_product(r, r)
 
             alpha = rk_rk/inner_product(d, multiply_matrix(Mat, d))
@@ -2234,42 +2227,69 @@ def Conjugate_Gradient(Mat, Vec, x0=None, tol=1e-10):
             d = add_matrix(r, multiply_scalar(d, beta))
             
             count = count+1
-            iteration.append(count)
+            iterations.append(count)
             residue.append(math.sqrt(inner_product(r, r)))
-        return x0, iteration, residue
 
+        if plot==True:
+            plt.xlabel('iteration')
+            plt.ylabel('residual')
+            plt.plot(iterations, residue)
+            plt.savefig('ConGrad_otf_residue_vs_iterations.png')
+            plt.clf()
+
+        return x0, iterations, residue
+
+    else: 
+        print("Invalid input.")
+        return None, None, None
+
+
+
+def multiply_matrix_otf(matrix_func, vec, n):
+    x = [0 for x in range(len(vec))]
+    for i in range(len(vec)):
+        for j in range(len(vec)):
+            x[i] = x[i] + (matrix_func(i, j, n) * vec[j])
+    return x
+
+def Conjugate_Gradient_otf(Mat_fun, Vec, n, x0_otf=None, tol=1e-10, plot=True, max_iter=1000):
     # THE CONJUGATE GRADIENT CODE WHEN MATRIX FUNCTION INSTEAD OF MATRIX
     # Check if the variable is function (i.e., it is callable or not)
-    elif hasattr(Mat, '__call__')==True:
+    if hasattr(Mat_fun, '__call__')==True:
 
-        if x0 is None: x0 = [0 for i in range(len(Vec))]
-        k = multiply_matrix_otf(Mat, x0)
-        r_otf = subtract_matrix(Vec, k)
+        if x0_otf is None: x0_otf = [0 for i in range(n*n)]
+        r_otf = subtract_matrix(Vec, multiply_matrix_otf(Mat_fun, x0_otf, n))
         d_otf = copy.deepcopy(r_otf)
-        iteration, residue = [], []
+        iterations, residue = [], []
         count = 0
 
-        while math.sqrt(inner_product(r_otf, r_otf)) > tol and count <= 1000:
+        while math.sqrt(inner_product(r_otf, r_otf)) > tol and count <= max_iter:
             rk_rk_otf = inner_product(r_otf, r_otf)
 
-            alpha_otf = rk_rk_otf/inner_product(d_otf, multiply_matrix_otf(Mat, d_otf))
+            alpha_otf = rk_rk_otf/inner_product(d_otf, multiply_matrix_otf(Mat_fun, d_otf, n))
 
-            x0 = add_matrix(x0, multiply_scalar(d_otf, alpha_otf))
-            r_otf = subtract_matrix(r_otf, multiply_scalar(multiply_matrix_otf(Mat, d_otf), alpha_otf))
+            x0_otf = add_matrix(x0_otf, multiply_scalar(d_otf, alpha_otf))
+            r_otf = subtract_matrix(r_otf, multiply_scalar(multiply_matrix_otf(Mat_fun, d_otf, n), alpha_otf))
 
             beta_otf = inner_product(r_otf, r_otf)/rk_rk_otf
             d_otf = add_matrix(r_otf, multiply_scalar(d_otf, beta_otf))
             
             count = count+1
-            iteration.append(count)
-            residue.append(math.sqrt(inner_product(r_otf, r_otf)))
-        return x0, iteration, residue
+            iterations.append(count)
+            residue.append(math.sqrt(rk_rk_otf))
+
+        if plot==True:
+            plt.xlabel('iteration')
+            plt.ylabel('residual')
+            plt.plot(iterations, residue)
+            plt.savefig('ConGrad_otf_residue_vs_iterations.png')
+            plt.clf()
+
+        return x0_otf, iterations, residue
 
     else: 
-        print("Invalid input")
+        print("Invalid input.")
         return None, None, None
-
-
 
 ########################################################################################################################
 #
