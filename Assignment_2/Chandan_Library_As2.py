@@ -1458,6 +1458,42 @@ def convert_to_float(frac_str):
 
 
 """
+Function to round off the elements of a matrix
+
+Parameters:
+- arr: Matrix
+- prec: Precision
+
+Returns:
+- Matrix with rounded off elements
+"""
+def my_round(arr, prec):
+    np.set_printoptions(suppress=True,precision=prec)
+    return arr
+
+
+########################################################################################################################
+
+
+"""
+Function to calculate the norm of a vector
+
+Parameters:
+- r: Vector
+
+Returns:
+- Norm of the vector
+"""
+def calculate_norm(r):
+    Norm = 0
+    for i in r:
+        Norm += i**2
+    return Norm
+
+
+########################################################################################################################
+
+"""
 Function for reading the matrix from a text file
 
 Parameters:
@@ -1752,6 +1788,17 @@ def check_positive_definite(mat):
 
 
 ########################################################################################################################
+
+
+"""
+Function to separate matrix and vector from augmented matrix
+
+Parameters:
+- matrix: Augmented matrix
+
+Returns:
+- Matrix and vector
+"""
 
 def deaugment_matrix(matrix):
     n=len(matrix)
@@ -2161,135 +2208,174 @@ def gauss_seidel(matrix, b, tol=1e-6):
 ########################################################################################################################
 
 
-def get_trace(Mat):
-    trace = 0
-    for i in range(len(Mat)):
-        trace += Mat[i][i]
-    return trace
+"""
+Function to solve a system of linear equations using the Conjugate Gradient method
 
-def inner_product(Mat_A, Mat_B):
-    if isinstance(Mat_A[0], list) and isinstance(Mat_B[0], list):
-        # Matrices inner product
-        IP = multiply_matrix(Mat_A, transpose_matrix(Mat_B))
-        return get_trace(IP)
-    elif isinstance(Mat_A[0], (int, float)) and isinstance(Mat_B[0], (int, float)):
-        # Vectors inner product
-        if len(Mat_A) != len(Mat_B):
-            print("Vectors must have the same length for inner product.")
-            return None
-        IP = 0
-        for i in range(len(Mat_A)):
-            IP += Mat_A[i] * Mat_B[i]
-        return IP
-    else:
-        print("Unsupported input types for inner product.")
-        return None
+Parameters:
+- Mat: Matrix
+- Vec: RHS vector
+- x0: Initial guess
+- tol: Tolerance for convergence
+- max_iter: Maximum number of iterations
+
+Returns:
+- Solution of the system of linear equations
+"""
+
+def Conjugate_Gradient(Mat, Vec, x0=None, tol=1e-10, max_iter=10000):
+
+    # THE CONJUGATE GRADIENT CODE WHEN MATRIX IS GIVEN
+    # Check if the variable is a matrix (list of lists)
+    if hasattr(Mat, '__call__')==False:
+        if x0 is None: x0 = np.zeros(len(Vec))
+        r = Vec - np.dot(Mat, x0)
+        d = r
+        residue = []
+        count = 1
+        
+        while np.dot(np.transpose(r),r) > tol and count <= max_iter:
+            rk_rk = np.dot(np.transpose(r), r)
+            alpha = rk_rk/np.dot(d, np.dot(Mat, d))
+            x0 += d*alpha
+            r -= np.dot(Mat, d)*alpha
+
+            beta = np.dot(np.transpose(r), r)/rk_rk
+            d = r + d*beta
+            count = count+1
+            residue.append(math.sqrt(np.dot(np.transpose(r), r)))
+
+        return x0, residue
+
+    else: 
+        print("Invalid matrix input.")
+        return None, None
+
+
+
+"""
+Function to find the inverse of a matrix using the Conjugate Gradient method
+
+Parameters:
+- A: Matrix
+- tol: Tolerance for convergence
+- max_iter: Maximum number of iterations
+
+Returns:
+- Inverse of the matrix
+"""
+
+def inverse_using_conjugate_gradient(A, tol=1e-10, max_iter=10000):
+    n = len(A)
+    A_inv = np.zeros((n, n))
+    for i in range(n):
+        e = np.zeros(n)
+        e[i] = 1
+        x, _ = Conjugate_Gradient(np.transpose(A), e, tol=tol, max_iter=max_iter)
+        A_inv[:, i] = x
+    return A_inv.T
+
 
 """
 Function to solve a system of linear equations using the Conjugate Gradient method
 
 Parameters:
-- A: Coefficient matrix
-- b: RHS vector
-- x: Initial guess for the solution
+- A: Matrix
+- Vec: RHS vector
 - tol: Tolerance for convergence
 - max_iter: Maximum number of iterations
 
 Returns:
-- x: Solution of the system of linear equations
+- Solution of the system of linear equations
+- Residue
 """
 
+def solve_using_conjugate_gradient(A, Vec, tol=1e-10, max_iter=10000):
+    Solution, residue = Conjugate_Gradient(A, Vec, tol=tol, max_iter=max_iter)
+    return Solution, residue
 
 
+########################################################################################################################
 
 
-def Conjugate_Gradient(Mat, Vec, x0=None, tol=1e-10, plot=False, max_iter=1000):
+"""
+Conjugate Gradient method without forming the matrix
 
-    # THE CONJUGATE GRADIENT CODE WHEN MATRIX IS GIVEN
-    # Check if the variable is a matrix (list of lists)
-    if isinstance(Mat, list) and isinstance(Mat[0], list)==True:
+Parameters:
+- matrix_func: Function to calculate the matrix-vector product
+- Vec: RHS vector
+- tol: Tolerance for convergence
+- max_iter: Maximum number of iterations
 
-        if x0 is None: x0 = [0 for i in range(len(Vec))]
-        r = subtract_matrix(Vec, multiply_matrix(Mat, x0))      # r = vec - Mat*x0
-        d = copy.deepcopy(r)
-        iterations, residue = [], []
-        count = 0
-        
-        while math.sqrt(inner_product(r, r)) > tol and count <= max_iter:
-            rk_rk = inner_product(r, r)
+Returns:
+- Solution of the system of linear equations
+- Residue
+"""
 
-            alpha = rk_rk/inner_product(d, multiply_matrix(Mat, d))
-            
-            x0 = add_matrix(x0, multiply_scalar(d, alpha))
-            r = subtract_matrix(r, multiply_scalar(multiply_matrix(Mat, d), alpha))
-            
-            beta = inner_product(r, r)/rk_rk
-            d = add_matrix(r, multiply_scalar(d, beta))
-            
-            count = count+1
-            iterations.append(count)
-            residue.append(math.sqrt(inner_product(r, r)))
+def Conjugate_Gradient_otf(matrix_func, Vec, tol=1e-6, max_iter=500):
 
-        if plot==True:
-            plt.xlabel('iteration')
-            plt.ylabel('residual')
-            plt.plot(iterations, residue)
-            plt.savefig('ConGrad_otf_residue_vs_iterations.png')
-            plt.clf()
-
-        return x0, iterations, residue
-
-    else: 
-        print("Invalid input.")
-        return None, None, None
-
-
-
-def multiply_matrix_otf(matrix_func, vec, n):
-    x = [0 for x in range(len(vec))]
-    for i in range(len(vec)):
-        for j in range(len(vec)):
-            x[i] = x[i] + (matrix_func(i, j, n) * vec[j])
-    return x
-
-def Conjugate_Gradient_otf(Mat_fun, Vec, n, x0_otf=None, tol=1e-10, plot=True, max_iter=1000):
     # THE CONJUGATE GRADIENT CODE WHEN MATRIX FUNCTION INSTEAD OF MATRIX
     # Check if the variable is function (i.e., it is callable or not)
-    if hasattr(Mat_fun, '__call__')==True:
+    if hasattr(matrix_func, '__call__')==True:
+        x0 = np.zeros(len(Vec))
+        r = Vec - matrix_func(x0)
+        d = r
+        residue = []
+        count = 1
 
-        if x0_otf is None: x0_otf = [0 for i in range(n*n)]
-        r_otf = subtract_matrix(Vec, multiply_matrix_otf(Mat_fun, x0_otf, n))
-        d_otf = copy.deepcopy(r_otf)
-        iterations, residue = [], []
-        count = 0
+        while calculate_norm(r) > tol and count <= max_iter:
+            rk_rk = np.dot(np.transpose(r), r)
+            alpha = rk_rk/np.dot(d, matrix_func(d))
+            x0 += alpha*d
+            r -= alpha*matrix_func(d)
 
-        while math.sqrt(inner_product(r_otf, r_otf)) > tol and count <= max_iter:
-            rk_rk_otf = inner_product(r_otf, r_otf)
+            beta = np.dot(np.transpose(r),r)/rk_rk
+            d = r + beta*d
+            residue.append(calculate_norm(r))
+            count += 1
 
-            alpha_otf = rk_rk_otf/inner_product(d_otf, multiply_matrix_otf(Mat_fun, d_otf, n))
-
-            x0_otf = add_matrix(x0_otf, multiply_scalar(d_otf, alpha_otf))
-            r_otf = subtract_matrix(r_otf, multiply_scalar(multiply_matrix_otf(Mat_fun, d_otf, n), alpha_otf))
-
-            beta_otf = inner_product(r_otf, r_otf)/rk_rk_otf
-            d_otf = add_matrix(r_otf, multiply_scalar(d_otf, beta_otf))
-            
-            count = count+1
-            iterations.append(count)
-            residue.append(math.sqrt(rk_rk_otf))
-
-        if plot==True:
-            plt.xlabel('iteration')
-            plt.ylabel('residual')
-            plt.plot(iterations, residue)
-            plt.savefig('ConGrad_otf_residue_vs_iterations.png')
-            plt.clf()
-
-        return x0_otf, iterations, residue
+        return x0, residue
 
     else: 
-        print("Invalid input.")
-        return None, None, None
+        print("Invalid matrix function input.")
+        return None, None
+
+
+
+"""
+Function to find the inverse of a matrix using the Conjugate Gradient method
+
+Parameters:
+- matrix_func: Function to calculate the matrix-vector product
+- tol: Tolerance for convergence
+- max_iter: Maximum number of iterations
+
+Returns:
+- Inverse of the matrix
+"""
+
+def conj_grad_otf_inverse(matrix_func, n, tol=1e-6, plot=True):
+    Sol = []
+    Res = []
+    for i in range(n):
+        vec = np.zeros(n)
+        vec[i] = 1
+        inv, res = Conjugate_Gradient_otf(matrix_func, vec, tol)
+        Sol.append(inv)
+        Res.append(res)
+    Res = np.sqrt(np.sum(np.array(Res)**2, axis=1))
+
+    if plot==True:
+        plt.plot(res)
+        plt.xlabel("Iteration number")
+        plt.ylabel("Residue")
+        plt.yscale('log')
+        plt.title("Conjugate Gradient on the fly Method (residue vs iteration)")
+        plt.show()
+
+    Sol = np.array(Sol)
+    return Sol.T, Res
+
+
 
 ########################################################################################################################
 #
