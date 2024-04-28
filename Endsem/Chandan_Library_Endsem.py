@@ -4,6 +4,7 @@ import math
 
 import matplotlib.pyplot as plt
 import numpy as np
+from tqdm import tqdm
 
 ########################################################################################################################
 
@@ -16,6 +17,7 @@ SECTIONS OF THE LIBRARY
 - NUMERICAL INTEGRATION ALGORITHMS
 - ORDINARY DIFFERENTIAL EQUATIONS
 - PARTIAL DIFFERENTIAL EQUATIONS
+- MONTE CARLO METHODS
 """
 
 ########################################################################################################################
@@ -158,10 +160,10 @@ Returns:
 - Matrix with all elements rounded off to 2 decimal places
 """
 
-def round_matrix(M):
+def round_matrix(M, decimals=2):
     for i in range(len(M)):
         for j in range(len(M[0])):
-            M[i][j]=ROUND(M[i][j],2)
+            M[i][j]=ROUND(M[i][j], decimals)
     return M
 
 
@@ -179,7 +181,7 @@ Returns:
 - Derivative of the function at the given x
 """
 
-def derivative(f, x):
+def derivative(f, x, h=1e-6):
     h=10**-8
     dy_dx=(f(x+h)-f(x))/h # Derivative algorithm
     return dy_dx
@@ -196,7 +198,7 @@ Returns:
 - Double derivative of the function at the given x
 """
 
-def double_derivative(f, x, h=1e-4):
+def double_derivative(f, x, h=1e-6):
     # Calculate the second derivative using finite differences
     d2y_dx2 = (f(x + h) - 2 * f(x) + f(x - h)) / (h**2)
     return d2y_dx2
@@ -1047,7 +1049,7 @@ Returns:
 """
 
 def get_roots_weights_gaussian(n):
-    guess = [np.cos((2 * i + 1) * np.pi / (2 * n)) for i in range(n)]
+    guess = [math.cos((2 * i + 1) * math.pi / (2 * n)) for i in range(n)]
     roots = [find_root(guess[i], n) for i in range(n)]
     weights = [2 / ((1 - root**2) * legendre_derivative(root, n)**2) for root in roots]
 
@@ -1177,17 +1179,17 @@ Returns:
 """
 
 
-def print_matrix(A):
-    r = len(A)
-    c = len(A[0])
-    for i in range(r):
-        for j in range(c):
-            # prints the matrix with appropriate spaces for easy understanding
-            print(str(A[i][j]).ljust(7), end="")
+def print_matrix(Mat):
+    if Mat is None:
+        print("Matrix is empty")
+        return None
+    else:
+        for i in range(len(Mat)):
+            for j in range(len(Mat[0])):
+                # prints the matrix with appropriate spaces for easy understanding
+                print(str(Mat[i][j]).ljust(7), end="")
+            print()
         print()
-    print()
-
-
 
 """
 Function to print a matrix
@@ -1200,13 +1202,13 @@ Returns:
 """
 
 
-def print_matrix_with_gap(A):
-    r = len(A)
-    c = len(A[0])
+def print_matrix_with_gap(Mat):
+    r = len(Mat)
+    c = len(Mat[0])
     for i in range(r):
         for j in range(c):
             # prints the matrix with appropriate spaces for easy understanding
-            print(A[i][j], end="    ")
+            print(Mat[i][j], end="    ")
         print()
     print()
 
@@ -1225,15 +1227,33 @@ Returns:
 - Sum of the two matrices
 """
 
-def add_matrix(A, B):
-    r = len(A)
-    c = len(A[0])
-    C=[[0 for i in range(c)] for j in range(r)]
-    for i in range(r):
-        for j in range(c):
-            C[i][j]=A[i][j]+B[i][j] # Addition algorithm
-    return C
-
+def add_matrix(Mat_A, Mat_B):
+    if isinstance(Mat_A[0], list) and isinstance(Mat_B[0], list):
+        # Matrices addition
+        if len(Mat_A) != len(Mat_B) or len(Mat_A[0]) != len(Mat_B[0]):
+            print("Matrices must have the same dimensions for addition.")
+            return None
+        
+        Mat_C = [[0 for _ in range(len(Mat_A[0]))] for _ in range(len(Mat_A))]
+        for i in range(len(Mat_A)):
+            for j in range(len(Mat_A[0])):
+                Mat_C[i][j] = Mat_A[i][j] + Mat_B[i][j]
+        
+        return Mat_C
+    elif isinstance(Mat_A[0], (int, float)) and isinstance(Mat_B[0], (int, float)):
+        # Vectors addition
+        if len(Mat_A) != len(Mat_B):
+            print("Vectors must have the same length for addition.")
+            return None
+        
+        Vec_C = [0 for _ in range(len(Mat_A))]
+        for i in range(len(Mat_A)):
+            Vec_C[i] = Mat_A[i] + Mat_B[i]
+        
+        return Vec_C
+    else:
+        print("Unsupported input types for addition.")
+        return None
 
 ########################################################################################################################
 
@@ -1249,14 +1269,33 @@ Returns:
 - Difference of the two matrices
 """
 
-def subtract_matrix(A, B):
-    r = len(A)
-    c = len(A[0])
-    C=[[0 for i in range(c)] for j in range(r)]
-    for i in range(r):
-        for j in range(c):
-            C[i][j]=A[i][j]-B[i][j] # Subtraction algorithm
-    return C
+def subtract_matrix(Mat_A, Mat_B):
+    if isinstance(Mat_A[0], list) and isinstance(Mat_B[0], list):
+        # Matrices addition
+        if len(Mat_A) != len(Mat_B) or len(Mat_A[0]) != len(Mat_B[0]):
+            print("Matrices must have the same dimensions for subtraction.")
+            return None
+        
+        Mat_C = [[0 for _ in range(len(Mat_A[0]))] for _ in range(len(Mat_A))]
+        for i in range(len(Mat_A)):
+            for j in range(len(Mat_A[0])):
+                Mat_C[i][j] = Mat_A[i][j] - Mat_B[i][j]
+        
+        return Mat_C
+    elif isinstance(Mat_A[0], (int, float)) and isinstance(Mat_B[0], (int, float)):
+        # Vectors addition
+        if len(Mat_A) != len(Mat_B):
+            print("Vectors must have the same length for subtraction.")
+            return None
+        
+        Vec_C = [0 for _ in range(len(Mat_A))]
+        for i in range(len(Mat_A)):
+            Vec_C[i] = Mat_A[i] - Mat_B[i]
+        
+        return Vec_C
+    else:
+        print("Unsupported input types for subtraction.")
+        return None
 
 
 ########################################################################################################################
@@ -1273,15 +1312,21 @@ Returns:
 - Product of the matrix and the scalar
 """
 
-def multiply_scalar(A, s):
-    r = len(A)
-    c = len(A[0])
-    B=[[0 for i in range(c)] for j in range(r)]
-    for i in range(r):
-        for j in range(c):
-            B[i][j]=s*A[i][j] # Multiplication algorithm
-    return B
-
+def multiply_scalar(Mat_A, s):
+    if isinstance(Mat_A[0], list):
+        # Matrix scalar multiplication
+        Mat_C = [[0 for _ in range(len(Mat_A[0]))] for _ in range(len(Mat_A))]
+        for i in range(len(Mat_A)):
+            for j in range(len(Mat_A[0])):
+                Mat_C[i][j] = s * Mat_A[i][j]
+        return Mat_C
+    elif isinstance(Mat_A, list) and all(isinstance(element, (int, float)) for element in Mat_A):
+        # Vector scalar multiplication
+        Vec_C = [s * element for element in Mat_A]
+        return Vec_C
+    else:
+        print("Unsupported input type for scalar multiplication.")
+        return None
 
 ########################################################################################################################
 
@@ -1301,16 +1346,58 @@ Returns:
 - Product of the two matrices
 """
 
-def multiply_matrix(A, r1, c1, B, r2, c2):
-    if c1==r2: # checking compatibility
-        C=[[0 for i in range(c2)] for j in range(r1)] # initializing matrix C
-        for i in range(r1):
-            for j in range(c2):
-                for k in range(c2):
-                    C[i][j]+=float(A[i][k])*float(B[k][j]) # multiplication algorithm
-        return C, r1, c2
+
+def multiply_matrix(Mat_A, Mat_B):
+
+    # Checking if A and B are both matrices
+    if isinstance(Mat_A[0], list) and isinstance(Mat_B[0], list):
+        # Matrix x Matrix multiplication
+        if len(Mat_A[0]) == len(Mat_B):
+            C = [[0 for _ in range(len(Mat_B[0]))] for _ in range(len(Mat_A))]
+            for i in range(len(Mat_A)):
+                for j in range(len(Mat_B[0])):
+                    for k in range(len(Mat_B)):
+                        C[i][j] += float(Mat_A[i][k]) * float(Mat_B[k][j])
+            return C
+        else:
+            print("Matrices incompatible for multiplication")
+            return None
+
+    # Vector x Matrix multiplication
+    elif isinstance(Mat_A, list) and isinstance(Mat_B[0], list):
+        if len(Mat_A) == len(Mat_B):
+            C = [0 for _ in range(len(Mat_B[0]))]
+            for i in range(len(Mat_B[0])):
+                for j in range(len(Mat_B)):
+                    C[i] += float(Mat_A[j]) * float(Mat_B[j][i])
+            return C
+        else:
+            print("Vector and matrix incompatible for multiplication")
+            return None
+
+    # Matrix x Vector multiplication
+    elif isinstance(Mat_A[0], list) and isinstance(Mat_B, list):
+        if len(Mat_A[0]) == len(Mat_B):
+            C = [0 for _ in range(len(Mat_A))]
+            for i in range(len(Mat_A)):
+                for j in range(len(Mat_B)):
+                    C[i] += float(Mat_A[i][j]) * float(Mat_B[j])
+            return C
+        else:
+            print("Matrix and vector incompatible for multiplication")
+            return None
+
+    # Vector x Vector (dot product)
+    elif isinstance(Mat_A, list) and isinstance(Mat_B, list):
+        if len(Mat_A) == len(Mat_B):
+            C = sum(float(a) * float(b) for a, b in zip(Mat_A, Mat_B))
+            return C
+        else:
+            print("Vectors of different sizes cannot be multiplied")
+            return None
     else:
-        print("matrices incompatible for multiplication")
+        print("Unsupported types for multiplication")
+        return None
 
 
 ########################################################################################################################
@@ -1326,18 +1413,85 @@ Returns:
 - Transpose of the matrix
 """
 
-def transpose_matrix(A):
-    r = len(A)
-    c = len(A[0])
-    B = [[0 for x in range(r)] for y in range(c)] 
-    for i in range(r):
-        for j in range(c):
-            B[j][i]=A[i][j]
-    return B
+def transpose_matrix(Mat):
+    if isinstance(Mat[0], list):
+        # Transpose of matrix
+        B = [[0 for i in range(len(Mat))] for j in range(len(Mat[0]))] 
+        for i in range(len(Mat)):
+            for j in range(len(Mat[0])):
+                B[j][i] = Mat[i][j]
+        return B
+    elif isinstance(Mat, list) and all(isinstance(element, (int, float)) for element in Mat):
+        # Transpose of vector
+        return [[element] for element in Mat]
+    else:
+        print("Unsupported input type for transpose.")
+        return None
+
+########################################################################################################################
+
+
+"""
+Function to convert a string fraction to float
+
+Parameters:
+- frac_str: Fraction in string format
+
+Returns:
+- Fraction in float format
+"""
+def convert_to_float(frac_str):
+    try:
+        return float(frac_str)
+    except ValueError:
+        num, denom = frac_str.split('/')
+        try:
+            leading, num = num.split(' ')
+            whole = float(leading)
+        except ValueError:
+            whole = 0
+        frac = float(num) / float(denom)
+        return whole - frac if whole < 0 else whole + frac
 
 
 ########################################################################################################################
 
+
+"""
+Function to round off the elements of a matrix
+
+Parameters:
+- arr: Matrix
+- prec: Precision
+
+Returns:
+- Matrix with rounded off elements
+"""
+def my_round(arr, prec):
+    np.set_printoptions(suppress=True,precision=prec)
+    return arr
+
+
+########################################################################################################################
+
+
+"""
+Function to calculate the norm of a vector
+
+Parameters:
+- r: Vector
+
+Returns:
+- Norm of the vector
+"""
+def calculate_norm(r):
+    Norm = 0
+    for i in r:
+        Norm += i**2
+    return Norm
+
+
+########################################################################################################################
 
 """
 Function for reading the matrix from a text file
@@ -1351,7 +1505,7 @@ Returns:
 
 def read_matrix(txt):
     with open(txt, 'r') as a:
-        matrix=[[float(num) for num in row.split(' ')] for row in a ]
+        matrix=[[convert_to_float(num) for num in row.split(' ')] for row in a ]
     row=len(matrix)
     column=len(matrix[0])
     return matrix, row, column
@@ -1372,11 +1526,11 @@ Returns:
 - Matrix with row1 and row2 swapped
 """
 
-def swap_rows(A, row1, row2):
-    temp = A[row1]
-    A[row1] = A[row2]
-    A[row2] = temp
-    return A
+def swap_rows(Mat, row1, row2):
+    temp = Mat[row1]
+    Mat[row1] = Mat[row2]
+    Mat[row2] = temp
+    return Mat
 
 
 
@@ -1392,22 +1546,22 @@ Returns:
 - Augmented matrix with partial pivoting
 """
 
-def partial_pivot(Ab, m, nrows):
-    pivot = Ab[m][m]    # declaring the pivot
-    if (Ab[m][m] != 0):
-        return Ab    # return if partial pivot is not required
+def partial_pivot(Mat_Ab, m, nrows):
+    pivot = Mat_Ab[m][m]    # declaring the pivot
+    if (Mat_Ab[m][m] != 0):
+        return Mat_Ab    # return if partial pivot is not required
     else:
         for r in range(m+1,nrows):
-            pivot=Ab[r][m]
+            pivot=Mat_Ab[r][m]
             # check for non-zero pivot and swap rows with it
             for k in range(m+1,nrows):
-                if abs(Ab[k][m])>pivot:
-                    pivot=Ab[k][m]
+                if abs(Mat_Ab[k][m])>pivot:
+                    pivot=Mat_Ab[k][m]
                     r=k
-            if Ab[r][m] != 0:
-                pivot = Ab[r][m]
-                Ab=swap_rows(Ab,m,r)
-                return Ab
+            if Mat_Ab[r][m] != 0:
+                pivot = Mat_Ab[r][m]
+                Mat_Ab=swap_rows(Mat_Ab,m,r)
+                return Mat_Ab
             else:
                 r+=1
     if (pivot==0):    # no unique solution case
@@ -1429,35 +1583,35 @@ Returns:
 - Augmented matrix after Gauss Jordan elimination
 """
 
-def gauss_jordan(Ab,nrows,ncols):
+def gauss_jordan(Mat_Ab, nrows, ncols):
     det=1
     r=0
     # does partial pivoting
-    Ab = partial_pivot(Ab,r,nrows)
+    Mat_Ab = partial_pivot(Mat_Ab,r,nrows)
     for r in range(0,nrows):
         # no solution case
-        if Ab==None:
-            return Ab
+        if Mat_Ab==None:
+            return Mat_Ab
         else:
             # Changes the diagonal elements to unity
-            fact=Ab[r][r]
+            fact=Mat_Ab[r][r]
             if fact==0:
                 # does partial pivoting
-                Ab = partial_pivot(Ab,r,nrows)
-            fact=Ab[r][r]
+                Mat_Ab = partial_pivot(Mat_Ab,r,nrows)
+            fact=Mat_Ab[r][r]
             det=det*fact # calculates the determinant
             for c in range(r,ncols):
-                Ab[r][c]*=1/fact
+                Mat_Ab[r][c]*=1/fact
             # Changes the off-diagonal elements to zero
             for r1 in range(0,nrows):
                 # does not change if it is already done
-                if (r1==r or Ab[r1][r]==0):
+                if (r1==r or Mat_Ab[r1][r]==0):
                     r1+=1
                 else:
-                    factor = Ab[r1][r]
+                    factor = Mat_Ab[r1][r]
                     for c in range(r,ncols):
-                        Ab[r1][c]-= factor * Ab[r][c]
-    return Ab, det
+                        Mat_Ab[r1][c]-= factor * Mat_Ab[r][c]
+    return Mat_Ab, det
 
 
 ########################################################################################################################
@@ -1474,13 +1628,13 @@ Returns:
 - Inverse matrix
 """
 
-def get_inv_GJ(A,n):
-    r=len(A)
-    c=len(A[0])
+def get_inv_GJ(Mat, n):
+    r=len(Mat)
+    c=len(Mat[0])
     M=[[0 for j in range(n)] for i in range(n)]
     for i in range(r):
         for j in range(n,c):
-            M[i][j-n]=A[i][j]
+            M[i][j-n]=Mat[i][j]
     return M
 
 
@@ -1500,44 +1654,44 @@ Returns:
 """
 
 
-def gauss_jordan_steps(Ab,nrows,ncols):
+def gauss_jordan_steps(Mat_Ab, nrows, ncols):
     # does partial pivoting
     det=1
     r=0
-    Ab = partial_pivot(Ab,r,nrows)
+    Mat_Ab = partial_pivot(Mat_Ab,r,nrows)
     for r in range(0,nrows):
         # no solution case
-        if Ab==None:
-            return Ab
+        if Mat_Ab==None:
+            return Mat_Ab
         else:
             # Changes the diagonal elements to unity
             print("value of  r  =  "+str(r))
-            print_matrix(Ab,nrows,ncols)
-            fact=Ab[r][r]
+            print_matrix(Mat_Ab,nrows,ncols)
+            fact=Mat_Ab[r][r]
             if fact==0:
                 # does partial pivoting
-                Ab = partial_pivot(Ab,r,nrows)
-            fact=Ab[r][r]
+                Mat_Ab = partial_pivot(Mat_Ab,r,nrows)
+            fact=Mat_Ab[r][r]
             print("changing values of diagonal")
             det=det*fact # calculates the determinant
             for c in range(r,ncols):
                 print("fact value  =  "+str(fact))
-                Ab[r][c]*=1/fact
-                print_matrix(Ab,nrows,ncols)
+                Mat_Ab[r][c]*=1/fact
+                print_matrix(Mat_Ab,nrows,ncols)
                 print("loop -> value of  c  =  "+str(c))
             # Changes the off-diagonal elements to zero
             print("Now changing values other than diagonal")
             for r1 in range(0,nrows):
                 # does not change if it is already done
                 print("loop -> value of  r1  =  "+str(r1)+"  when  r  =  "+str(r))
-                if (r1==r or Ab[r1][r]==0):
+                if (r1==r or Mat_Ab[r1][r]==0):
                     r1+=1
                 else:
-                    factor = Ab[r1][r]
+                    factor = Mat_Ab[r1][r]
                     for c in range(r,ncols):
-                        Ab[r1][c]-= factor * Ab[r][c]
-                print_matrix(Ab,nrows,ncols)
-    return Ab, det
+                        Mat_Ab[r1][c]-= factor * Mat_Ab[r][c]
+                print_matrix(Mat_Ab,nrows,ncols)
+    return Mat_Ab, det
 
 
 ########################################################################################################################
@@ -1632,6 +1786,29 @@ def check_positive_definite(mat):
     else:
         return(False)
 
+
+########################################################################################################################
+
+
+"""
+Function to separate matrix and vector from augmented matrix
+
+Parameters:
+- matrix: Augmented matrix
+
+Returns:
+- Matrix and vector
+"""
+
+def deaugment_matrix(matrix):
+    n=len(matrix)
+    vec = [0 for i in range(n)]
+    mat=[[0 for j in range(n)] for i in range(n)]
+    for i in range(n):
+        for j in range(n):
+            mat[i][j] = matrix[i][j]
+        vec[i] = matrix[i][n]
+    return mat, vec
 
 ########################################################################################################################
 
@@ -1775,7 +1952,7 @@ Parameters:
 - n: Number of rows
 
 Returns:
-- Solution vector
+- Inverse of the matrix
 """
 
 def inverse_by_lu_decomposition (matrix, n):
@@ -1801,31 +1978,13 @@ def inverse_by_lu_decomposition (matrix, n):
         due to which all x0, x1, x2 and x3 are also getting falsely appended.
     '''
     
-    matrix_0 = copy.deepcopy(matrix)
-    partial_pivot_LU(matrix_0, identity[0], n)
-    matrix_0 = LU_doolittle(matrix_0, n)
-    x0 = for_back_subs_doolittle(matrix_0, n, identity[0])
-    x.append(copy.deepcopy(x0))
+    for i in range(n):
+        matrix = copy.deepcopy(matrix)
+        partial_pivot_LU(matrix, identity[i], n)
+        matrix = LU_doolittle(matrix, n)
+        x0 = for_back_subs_doolittle(matrix, n, identity[i])
+        x.append(copy.deepcopy(x0))
 
-
-    matrix_1 = copy.deepcopy(matrix)
-    partial_pivot_LU(matrix_1, identity[1], n)
-    matrix_1 = LU_doolittle(matrix_1, n)
-    x1 = for_back_subs_doolittle(matrix_1, n, identity[1])
-    x.append(copy.deepcopy(x1))
-
-    matrix_2 = copy.deepcopy(matrix)
-    partial_pivot_LU(matrix_2, identity[2], n)
-    matrix_2 = LU_doolittle(matrix_2, n)
-    x2 = for_back_subs_doolittle(matrix_2, n, identity[2])
-    x.append(copy.deepcopy(x2))
-
-    matrix_3 = copy.deepcopy(matrix)
-    partial_pivot_LU(matrix_3, identity[3], n)
-    matrix_3 = LU_doolittle(matrix_3, n)
-    x3 = for_back_subs_doolittle(matrix_3, n, identity[3])
-    x.append(copy.deepcopy(x3))
-    
     # The x matrix to be transposed to get the inverse in desired form
     inverse = transpose_matrix(x)
     return (inverse)
@@ -1945,8 +2104,8 @@ def LU_do2(M,n):
     print_matrix(U,n,n)
 
     # To check if the L and U matrices are correct, use this for verification
-    m,r,c=multiply_matrix(L, n, n, U, n, n)
-    print_matrix(m,r,c)
+    m=multiply_matrix(L, U)
+    print_matrix(m)
     
     return M
 
@@ -2004,7 +2163,6 @@ def jacobi(matrix, b, prec=1e-4):
 
 """
 Find the solution of a matrix vector pair using the Gauss-Seidel iterative method.
-This method is valid only for diagonally dominant matrices.
 
 Parameters:
 - A: Matrix
@@ -2048,6 +2206,281 @@ def gauss_seidel(matrix, b, tol=1e-6):
 
 
 ########################################################################################################################
+
+
+"""
+Function to solve a system of linear equations using the Conjugate Gradient method
+
+Parameters:
+- Mat: Matrix
+- Vec: RHS vector
+- x0: Initial guess
+- tol: Tolerance for convergence
+- max_iter: Maximum number of iterations
+
+Returns:
+- Solution of the system of linear equations
+"""
+
+def Conjugate_Gradient(Mat, Vec, x0=None, tol=1e-10, max_iter=10000):
+
+    # THE CONJUGATE GRADIENT CODE WHEN MATRIX IS GIVEN
+    # Check if the variable is a matrix (list of lists)
+    if hasattr(Mat, '__call__')==False:
+        if x0 is None: x0 = np.zeros(len(Vec))
+        r = Vec - np.dot(Mat, x0)
+        d = r
+        residue = []
+        count = 1
+        
+        while np.dot(np.transpose(r),r) > tol and count <= max_iter:
+            rk_rk = np.dot(np.transpose(r), r)
+            alpha = rk_rk/np.dot(d, np.dot(Mat, d))
+            x0 += d*alpha
+            r -= np.dot(Mat, d)*alpha
+
+            beta = np.dot(np.transpose(r), r)/rk_rk
+            d = r + d*beta
+            count = count+1
+            residue.append(math.sqrt(np.dot(np.transpose(r), r)))
+
+        return x0, residue
+
+    else: 
+        print("Invalid matrix input.")
+        return None, None
+
+
+
+"""
+Function to find the inverse of a matrix using the Conjugate Gradient method
+
+Parameters:
+- A: Matrix
+- tol: Tolerance for convergence
+- max_iter: Maximum number of iterations
+
+Returns:
+- Inverse of the matrix
+"""
+
+def inverse_using_conjugate_gradient(A, tol=1e-10, max_iter=10000):
+    n = len(A)
+    A_inv = np.zeros((n, n))
+    for i in range(n):
+        e = np.zeros(n)
+        e[i] = 1
+        x, _ = Conjugate_Gradient(np.transpose(A), e, tol=tol, max_iter=max_iter)
+        A_inv[:, i] = x
+    return A_inv.T
+
+
+
+def solve_using_conjugate_gradient(A, Vec, tol=1e-10, max_iter=10000):
+    """
+    Function to solve a system of linear equations using the Conjugate Gradient method
+
+    Parameters:
+    - A: Matrix
+    - Vec: RHS vector
+    - tol: Tolerance for convergence
+    - max_iter: Maximum number of iterations
+
+    Returns:
+    - Solution of the system of linear equations
+    - Residue
+    """
+
+    Solution, residue = Conjugate_Gradient(A, Vec, tol=tol, max_iter=max_iter)
+    return Solution, residue
+
+
+########################################################################################################################
+
+
+
+def Conjugate_Gradient_otf(matrix_func, Vec, tol=1e-6, max_iter=500):
+    """
+    Conjugate Gradient method without forming the matrix
+
+    Parameters:
+    - matrix_func: Function to calculate the matrix-vector product
+    - Vec: RHS vector
+    - tol: Tolerance for convergence
+    - max_iter: Maximum number of iterations
+
+    Returns:
+    - Solution of the system of linear equations
+    - Residue
+    """
+
+    # THE CONJUGATE GRADIENT CODE WHEN MATRIX FUNCTION INSTEAD OF MATRIX
+    # Check if the variable is function (i.e., it is callable or not)
+    if hasattr(matrix_func, '__call__')==True:
+        x0 = np.zeros(len(Vec))
+        r = Vec - matrix_func(x0)
+        d = r
+        residue = []
+        count = 1
+
+        while calculate_norm(r) > tol and count <= max_iter:
+            rk_rk = np.dot(np.transpose(r), r)
+            alpha = rk_rk/np.dot(d, matrix_func(d))
+            x0 += alpha*d
+            r -= alpha*matrix_func(d)
+
+            beta = np.dot(np.transpose(r),r)/rk_rk
+            d = r + beta*d
+            residue.append(calculate_norm(r))
+            count += 1
+
+        return x0, residue
+
+    else: 
+        print("Invalid matrix function input.")
+        return None, None
+
+
+
+
+def conj_grad_otf_inverse(matrix_func, n, tol=1e-6, plot=True):
+    """
+    Function to find the inverse of a matrix using the Conjugate Gradient method
+
+    Parameters:
+    - matrix_func: Function to calculate the matrix-vector product
+    - tol: Tolerance for convergence
+    - max_iter: Maximum number of iterations
+
+    Returns:
+    - Inverse of the matrix
+    """
+
+    Sol = []
+    Res = []
+    for i in range(n):
+        vec = np.zeros(n)
+        vec[i] = 1
+        inv, res = Conjugate_Gradient_otf(matrix_func, vec, tol)
+        Sol.append(inv)
+        Res.append(res)
+    Res = np.sqrt(np.sum(np.array(Res)**2, axis=1))
+
+    if plot==True:
+        plt.plot(res)
+        plt.xlabel("Iteration number")
+        plt.ylabel("Residue")
+        plt.yscale('log')
+        plt.title("Conjugate Gradient on the fly Method (residue vs iteration)")
+        plt.show()
+
+    Sol = np.array(Sol)
+    return Sol.T, Res
+
+
+########################################################################################################################
+
+
+
+
+def Power(Mat, vect_X, vect_Y):
+    """
+    Function to get the eigenvalues and eigenvectors of a matrix using the Power method.
+
+    Parameters:
+    - Mat: Matrix
+    - x0: Initial guess for the eigenvector
+    - y: Initial guess for the eigenvalue
+    - eps: Tolerance for convergence
+
+    Returns:
+    - Eigenvalue
+    - Eigenvector
+    - Number of iterations
+    """
+
+    MatX = np.dot(Mat, vect_X)
+    MatXY = np.dot(MatX, vect_Y)
+    return MatX, MatXY
+
+def Power_eval_evect(A, x0, y, eps=1e-6):
+    """
+    Function to get the eigenvalues and eigenvectors of a matrix using the Power method.
+
+    Parameters:
+    - Mat: Matrix
+    - x0: Initial guess for the eigenvector
+    - y: Initial guess for the eigenvalue
+    - eps: Tolerance for convergence
+
+    Returns:
+    - Eigenvalue
+    - Eigenvector
+    - Number of iterations
+    """
+
+    mult = copy.deepcopy(A)
+    eval_prev = 2
+    v, eval_curr = Power(mult, x0, y)
+    v_prev = eval_prev
+    v_curr = eval_curr / eval_prev
+    count = 1
+
+    while abs(v_curr - v_prev) > eps and count < 100:
+        eval_prev = eval_curr
+        mult_next = np.dot(mult, A)
+        mult = mult_next
+        v, eval_curr = Power(mult, x0, y)
+        v_prev = v_curr
+        v_curr = eval_curr / eval_prev
+        count += 1
+
+    norm = np.sqrt(np.sum(np.square(v)))
+    
+    v = v / norm
+
+    return v_curr, v, count
+
+
+
+########################################################################################################################
+
+
+
+def QR_method(Mat):
+    n = len(Mat)
+    Q = np.zeros((n, n))
+    R = np.zeros((n, n))
+    
+    for i in range(n):
+        substraction = np.dot(Mat[:, i], Q[:, :i]) @ Q[:, :i].T
+        ui = Mat[:, i] - substraction
+        norm_ui = np.linalg.norm(ui)
+        e = ui / norm_ui
+        Q[:, i] = e
+
+        for j in range(i, n):
+            R[i, j] = np.dot(Mat[:, j], Q[:, i])
+
+    return Q, R
+
+def QR_factorisation_eigenvalues(Mat):
+    sol_ev_qr = np.copy(Mat)
+    evalues_QR = []
+    
+    for _ in range(20):
+        Q, R = QR_method(sol_ev_qr)
+        sol_ev_qr = R @ Q
+        
+    for i in range(len(Mat)):
+        temp_ev_QR = sol_ev_qr[i, i]
+        evalues_QR.append(np.round(temp_ev_QR, 6))
+        
+    return evalues_QR
+
+
+
+########################################################################################################################
 #
 #
 #
@@ -2076,7 +2509,7 @@ ORDINARY DIFFERENTIAL EQUATIONS
 - forward_euler - Function to solve first order ODE using Forward Euler's method
 - backward_euler - Function to solve first order ODE using Backward Euler's method
 - predictor_corrector - Function to solve first order ODE using Predictor-Corrector method
-- ODE_1D_RK2 - Function to solve first order ODE using Runge-Kutta 2nd order method
+- ODE_1ord_RK2 - Function to solve first order ODE using Runge-Kutta 2nd order method
 - ODE_1ord_RK4 - Function to solve first order ODE using Runge-Kutta 4th order method
 - ODE_2ord_RK4 - Function to solve second order ODE using Runge-Kutta 4th order method
 - Shooting_method - Function to solve second order ODE using Shooting method
@@ -2209,7 +2642,7 @@ Returns:
 - Y: Array of y values
 """
 
-def ODE_1D_RK2(x,y,h, lim, dydx):
+def ODE_1ord_RK2(x,y,h, lim, dydx):
     # Constructing solution arrays
     X = [x]
     Y = [y]
@@ -2508,7 +2941,7 @@ Returns:
 def verlet(A, x0, v0, dt, n, t0=0):
     # Initialize lists to store positions and time values
     X = [x0]
-    T = np.linspace(t0, t0 + dt * n, num=n)
+    T = [t0 + i * dt for i in range(n)]
 
     # Calculate the second position using the initial conditions
     X.append(x0 + v0 * dt + 0.5 * A(x0) * dt**2)
@@ -2544,7 +2977,7 @@ def velocity_verlet(A, x0, v0, dt, n, t0=0):
     # Initialize lists to store positions, velocities, and time values
     X = [x0]
     V = [v0]
-    T = np.linspace(t0, t0 + dt * n, num=n)
+    T = [t0 + i * dt for i in range(n)]
 
     for i in range(n - 1):
         # Update positions using current velocity and acceleration
@@ -2685,7 +3118,7 @@ def semi_implicit_euler(f1, f2, x0, y0, dt, num_steps, t0=0):
     Y = []
     x = x0
     y = y0
-    time_values = np.arange(t0, t0 + num_steps * dt, dt)
+    time_values = [t0 + i * dt for i in range(num_steps)]
 
     for i in range(num_steps):
         X.append(x)
@@ -2724,7 +3157,7 @@ PARTIAL DIFFERENTIAL EQUATIONS
 
 - plot_3D_surface - Function to plot 3D surface plot
 - get_matrix_heat_diff - Get the matrices A and B for solving the heat diffusion equation using Crank-Nicolson method
-- crank_nicolson_heat_diffusion - Solve 1D heat diffusion equation using Crank-Nicolson method
+- crank_nicolson_diffusion - Solve 1D heat diffusion equation using Crank-Nicolson method
 - poisson_solver - Solve the Poisson equation using implicit finite difference method
 - poisson_thomas_solver - Solve the Poisson equation using Thomas algorithm
 """
@@ -2757,10 +3190,51 @@ def plot_3D_surface(X, Y, Sol, Title='3D surface plot', X_label='X', Y_label='Y'
 
 
 ########################################################################################################################
+
+
+"""
+Function to solve 1D heat diffusion equation using Explicit method
+
+Parameters:
+- L: Length of the rod
+- T_initial: Initial temperature
+- T_center: Temperature at the center
+- alpha: Thermal diffusivity
+- Nx: Number of spatial grid points
+- Nt: Number of time steps
+- dt: Time step size
+- dx: Spatial step size
+
+Returns:
+- x: Spatial grid
+- T: Temperature distribution over space and time
+"""
+def heat_diffusion(L, T_initial, T_center, alpha, Nx, Nt, dt, dx):
+    # Spatial grid
+    x = [i * L / Nx for i in range(Nx + 1)]
+    dx = L / Nx
+
+    # Initial temperature distribution
+    T = [[T_initial] * (Nx + 1) for _ in range(Nt + 1)]
+
+    # Set the initial condition (heating at the center)
+    T[0][int(Nx / 2)] = T_center
+
+    # Explicit finite difference method
+    for n in range(1, Nt + 1):
+        for i in range(1, Nx):
+            T[n][i] = T[n-1][i] + alpha * dt / dx**2 * (T[n-1][i-1] - 2 * T[n-1][i] + T[n-1][i+1])
+
+    return x, T
+
+
+
+########################################################################################################################
     
 
 """
-Get the matrices A and B for solving the heat diffusion equation using Crank-Nicolson method.
+Get the matrices A and B for solving the diffusion equation using Crank-Nicolson method.
+This function is used for free boundary conditions.
 
 Parameters:
 - N: Number of spatial grid points
@@ -2771,19 +3245,67 @@ Returns:
 - B: Matrix B
 """
 
-def get_matrix_heat_diff(N, sigma):
-    A = [[0 for j in range(N)] for k in range(N)]
-    B = [[0 for j in range(N)] for k in range(N)]
+def diff_matrix_free_boundary(N, sigma):
+    # Initialize matrices A and B with zeros
+    A = [[0] * N for _ in range(N)]
+    B = [[0] * N for _ in range(N)]
 
+    # Interior points
     for i in range(0, N):
-        A[i][i] = 2 + 2*sigma
-        B[i][i] = 2 - 2*sigma
+        A[i][i] = 2 + 2 * sigma  # Diagonal element of A
+        B[i][i] = 2 - 2 * sigma  # Diagonal element of B
+
+        # Connect to the left neighbor (if not on the left edge)
         if i > 0:
-            A[i][i-1] = -sigma
-            B[i][i-1] = sigma
-        if i < N-1:
-            A[i][i+1] = -sigma
-            B[i][i+1] = sigma
+            A[i][i - 1] = -sigma
+            B[i][i - 1] = sigma
+
+        # Connect to the right neighbor (if not on the right edge)
+        if i < N - 1:
+            A[i][i + 1] = -sigma
+            B[i][i + 1] = sigma
+
+    return A, B
+
+
+"""
+Get the matrices A and B for solving the diffusion equation using Crank-Nicolson method.
+This function is used for isolated boundary conditions.
+
+Parameters:
+- N: Number of spatial grid points
+- sigma: alpha*dt/dx^2
+
+Returns:
+- A: Matrix A
+- B: Matrix B
+"""
+
+def diff_matrix_isolated_boundary(N, sigma):
+    # Initialize matrices A and B with zeros
+    A = [[0] * N for _ in range(N)]
+    B = [[0] * N for _ in range(N)]
+
+    # Fill diagonal and off-diagonal values for matrices A and B
+    for i in range(N):
+        A[i][i] = 2 + 2 * sigma  # Diagonal element of A
+        B[i][i] = 2 - 2 * sigma  # Diagonal element of B
+
+        # Connect to the left neighbor (if not on the left edge)
+        if i > 0:
+            A[i][i - 1] = -sigma
+            B[i][i - 1] = sigma
+
+        # Connect to the right neighbor (if not on the right edge)
+        if i < N - 1:
+            A[i][i + 1] = -sigma
+            B[i][i + 1] = sigma
+
+    # Boundary conditions
+    A[0][0] = 2 + sigma
+    B[0][0] = 2 - sigma
+    A[-1][-1] = 2 + sigma
+    B[-1][-1] = 2 - sigma
 
     return A, B
 
@@ -2797,6 +3319,9 @@ Parameters:
 - dx: Spatial step size
 - dt: Time step size
 - Diff: Thermal diffusivity
+- init_cond: Initial condition function
+- source_term: Source term function
+- boundary: Boundary condition function
 
 Returns:
 - u: Temperature distribution over space and time
@@ -2804,7 +3329,8 @@ Returns:
 - t: Time grid
 """
 
-def crank_nicolson_heat_diffusion(L, T, dx, dt, Diff, init_cond):
+
+def crank_nicolson_diffusion(L, T, dx, dt, Diff, init_cond, source_term, boundary):
 
     alpha = Diff * dt / (dx**2)
 
@@ -2820,16 +3346,17 @@ def crank_nicolson_heat_diffusion(L, T, dx, dt, Diff, init_cond):
         Temp[i][0] = init_cond(x[i])
 
     # Get the matrices for solving the matrix using crank-nicolson method
-    A, B = get_matrix_heat_diff(len(x), alpha)
+    A, B = boundary(len(x), alpha)
 
     Temp = np.array(Temp)
     A = np.array(A)
     B = np.array(B)
 
-    for j in range(1, int(T/dt)+1):
-        Temp[:, j] = np.linalg.solve(A, np.dot(B, Temp[:, j - 1]))
+    for j in range(1, len(t)):
+        source_vector = np.array([source_term(xi, t[j]) for xi in x])
+        Temp[:, j] = np.linalg.solve(A, np.dot(B, Temp[:, j - 1]) + dt * source_vector)
 
-    return Temp, x, t
+    return Temp, np.array(x), np.array(t)
 
 
 ########################################################################################################################
@@ -2856,42 +3383,45 @@ Returns:
 - Sol: Solution of the Poisson equation
 """
 
+
 def poisson_solver(xa, xb, ya, yb, n, func_left_bound, func_right_bound, func_bottom_bound, func_top_bound, source_func):
 
     xb += 0.0001*xb
     yb += 0.0001*yb
 
     # Generate grid
-    x0 = np.linspace(xa, xb, num=n)
-    y0 = np.linspace(ya, yb, num=n)
+    x0 = [xa + i * (xb - xa) / (n - 1) for i in range(n)]
+    y0 = [ya + i * (yb - ya) / (n - 1) for i in range(n)]
+
     h = (yb - ya) / (n - 1)  # Calculate h_y
     
     # Initialize matrix W
-    Sol = np.zeros((n, n))
+    Sol = [[0 for j in range(n)] for i in range(n)]
     
     # Calculate alpha
     alpha = ((xb - xa) / (yb - ya))**2
 
     # Set boundary conditions
-    Sol[0] = func_bottom_bound(x0)
-    Sol[n-1] = func_top_bound(x0)
+    for i in range(n):
+        Sol[0][i] = func_bottom_bound(x0[i])
+        Sol[n - 1][i] = func_top_bound(x0[i])
 
     for i in range(n):
         Sol[i][0] = func_left_bound(y0[i])
         Sol[i][n-1] = func_right_bound(y0[i])
 
     n2 = n - 2
-    R = np.zeros((n2, n2))
+    R = [[0 for j in range(n2)] for i in range(n2)]
 
     # Populate matrix R with rho values
     for i in range(n2):
         for j in range(n2):
             R[i][j] = -alpha * source_func(x0[i+1], y0[j+1]) * h**2
 
-    R = np.transpose(R)
+    R = transpose_matrix(R)
 
     N2 = n2**2
-    B = np.zeros((n2, n2))
+    B = [[0 for j in range(n2)] for i in range(n2)]
 
     # Get contributions from boundary conditions
     B[0] = Sol[0][1:-1]
@@ -2914,11 +3444,17 @@ def poisson_solver(xa, xb, ya, yb, n, func_left_bound, func_right_bound, func_bo
     Ainv = np.linalg.inv(A)
 
     # Get dot product
-    rho = B - R
-    u = np.dot(Ainv, rho.flatten())
+    rho = subtract_matrix(B, R)
+    rho_flat = [item for row in rho for item in row]
+    u = [0.0] * len(rho_flat)
+
+    # Perform matrix-vector multiplication
+    for i in range(len(Ainv)):
+        for j in range(len(rho_flat)):
+            u[i] += Ainv[i][j] * rho_flat[j]
 
     # Reshape result to (n-2) x (n-2) matrix
-    matrix = u.reshape((n2, n2))
+    matrix = [u[i:i+n2] for i in range(0, len(u), n2)]
 
     # Update W with the (x, y) table
     for i in range(n2):
@@ -2948,6 +3484,9 @@ Returns:
 """
 
 def poisson_thomas_solver(n_x, n_y, x_length, y_length, get_BC_poisson):
+
+    x_length += 0.0001*x_length
+    y_length += 0.0001*y_length
 
     n_x += 1
     n_y += 1
@@ -3164,41 +3703,44 @@ def plot_graph_linear(X, Y, c, m):
 
 # Ploynomial fit with given degree
 
-# def polynomial_fitting(X,Y, order):
-#     X1=copy.deepcopy(X)
-#     Y1=copy.deepcopy(Y)
-#     order+=1
+def polynomial_fitting(X, Y, order):
+    X1 = copy.deepcopy(X)
+    Y1 = copy.deepcopy(Y)
+    order+=1
     
-#     # Finding the coefficient matrix - refer notes
-#     A=[[0 for j in range(order)] for i in range(order)]
-#     vector=[0 for i in range(order)]
+    # Finding the coefficient matrix - refer notes
+    A = np.zeros((order, order))
+    vector = np.zeros(order)
 
-#     for i in range(order):
-#         for j in range(order):
-#             for k in range(len(X)):
-#                 A[i][j] += X[k]**(i+j)
+    for i in range(order):
+        for j in range(order):
+            A[i, j] = np.sum(np.power(X, i + j))
 
-#     Det=determinant(A,order)
-#     print("Determinant is = "+ str(Det))
-#     if Det==0:
-#         print("Determinant is zero. Inverse does not exist")
-#     print("Determinant is not zero. Inverse exists.\n")
-#     # Finding the coefficient vector - refer notes
-#     for i in range(order):
-#         for k in range(len(X)):
-#             vector[i] += X[k]**i * Y[k]
+    Det = np.linalg.det(A)
 
-#     # Solution finding using LU decomposition using Doolittle's condition L[i][i]=1
-#     # partial pivoting to avoid division by zero at pivot place
-#     A, vector = partial_pivot_LU(A, vector, order)
-#     A = LU_doolittle(A,order)
+    # print("Determinant is = " + str(Det))
+    if Det == 0:
+        print("Determinant is zero. Inverse does not exist")
+    # else:
+    #     print("Determinant is not zero. Inverse exists.\n")
+
+    # Finding the coefficient vector - refer notes
+    for i in range(order):
+        vector[i] = np.sum(np.power(X, i) * Y)
+
+    # Solution finding using LU decomposition using Doolittle's condition L[i][i]=1
+    # partial pivoting to avoid division by zero at pivot place
+    A, vector = partial_pivot_LU(A, vector, order)
+    A = LU_doolittle(A,order)
     
-#     # Finding coefficient vector
-#     solution = for_back_subs_doolittle(A,order,vector)
+    # Finding coefficient vector
+    solution = for_back_subs_doolittle(A,order,vector)
 
-#     return solution[0:order]
+    A_inv = inverse_by_lu_decomposition(A, len(A))
 
-        
+    return np.array(solution[0:order]), np.array(A_inv)
+
+
 
 # Plotting the graph
 
@@ -3206,11 +3748,65 @@ def plot_graph_poly(X, Y, sol, order):
     yfit=[0 for i in range(len(X))]
     # finding yfit
     for k in range(len(X)):
-        for l in range(order):
-            yfit[k]+=sol[l]*X[k]**l
+        for l in range(order+1):
+            yfit[k] += sol[l]*X[k]**l
     
     # plotting X and y_fit
-    plt.plot(X, yfit, 'r-', label="Curve fit with polynomial of degree = "+ str(order-1))
+    plt.plot(X, Y,'bo', label="Data")
+    plt.plot(X, yfit, 'r-', label="Curve fit with polynomial of degree = "+ str(order))
+    plt.ylabel("y-axis")
+    plt.xlabel("x-axis")
+    plt.legend()
+    plt.grid()
+
+
+
+########################################################################################################################
+    
+
+
+
+def chebyshev(x,order):
+    if order==0:
+        return np.ones_like(x)
+    elif order==1:
+        return (2*x)-1
+    elif order==2:
+        return (8*(x**2))-(8*x)+1
+    elif order==3:
+        return (32*(x**3)-(48*(x**2))+(18*x)-1)
+    elif order==4:
+        return (128*(x**4)-256*(x**3)+160*(x**2)-(32*x)+1)
+
+
+def chebyshev_fitting(X, Y, order):
+    order += 1
+
+    A=np.zeros((order, order))
+    vector = np.zeros(order)
+
+    for i in range(order):
+        for j in range(order):
+            total = np.sum(chebyshev(X, j) * chebyshev(X, i))
+            A[i, j] = total
+
+    # Finding the coefficient vector
+    for i in range(order):
+        vector[i] = np.sum(chebyshev(X, i) * Y)
+
+    determinant = np.linalg.det(A)
+    # print("Determinant is =", determinant)
+    if determinant == 0:
+        print("Determinant is zero. Inverse does not exist")
+    # else:
+    #     print("Determinant is not zero. Inverse exists.\n")
+
+    # Solving using LU decomposition
+    A_inv = inverse_by_lu_decomposition(A, len(A))
+    solution = np.dot(A_inv, vector)
+
+    return np.array(solution), np.array(A_inv)
+
 
 
 ########################################################################################################################
