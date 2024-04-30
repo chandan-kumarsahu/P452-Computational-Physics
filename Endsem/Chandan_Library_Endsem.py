@@ -4,7 +4,7 @@ import math
 
 import matplotlib.pyplot as plt
 import numpy as np
-from tqdm import tqdm
+from scipy.optimize import curve_fit
 
 ########################################################################################################################
 
@@ -2440,6 +2440,27 @@ def Power_eval_evect(A, x0, y, eps=1e-6):
     v = v / norm
 
     return v_curr, v, count
+
+
+def power_method_AR(A, num_simulations: int):
+	n = A.shape[0]
+	
+	# Step 1: Initialize a random vector
+	v = np.random.rand(n)
+	
+	# Step 2: Power method iterations
+	for _ in range(num_simulations):
+		# Multiply v by the matrix
+		Av = np.dot(A, v)
+		
+		# Normalize Av
+		v = Av / np.linalg.norm(Av)
+		
+	# Step 3: Calculate the eigenvalue
+	eigenvalue = np.dot(v, np.dot(A, v)) / np.dot(v, v)
+	eigenvector = v
+	
+	return eigenvalue, eigenvector
 
 
 
